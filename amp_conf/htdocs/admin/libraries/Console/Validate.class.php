@@ -62,6 +62,12 @@ class Validate extends Command {
 		if($input->getOption('clean')) {
 			$process = new Process("/tmp/validate.phar --clean");
 		} else {
+			$log = \FreePBX::Cxpanel()->chownFreepbx();
+			$path = str_replace("main.log","",$log[0]["path"]);
+			$log_file = $path."main.log";
+			if(file_exists($log_file)){
+				rename($log_file, $path."main.".strtotime("now").".log");
+			}			
 			$process = new Process("/tmp/validate.phar");
 		}
 		$process->setTty(true);
