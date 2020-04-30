@@ -20,6 +20,7 @@ class Moduleadmin extends Command {
 	private $pretty = false;
 	private $skipchown = false;
 	private $previousEdge = null;
+    private $previousCache = null;
 	private $tag = null;
 	private $emailbody = [];
 	private $sendemail = false;
@@ -169,6 +170,16 @@ class Moduleadmin extends Command {
 				$this->writeln('<error>'._('Confusing statement. Not sure what you want to do').'</error>');
 				exit(255);
 			}
+			if($input->getOption('ignorecache')){
+				$this->previousCache = \FreePBX::Config()->get('MODULEADMIN_SKIP_CACHE');
+				if($this->previousCache) {
+					$this->writeln('<info>'._('Module Admin caching already enabled, ignoring option').'</info>');
+					$this->previousCache = null;
+				} else {
+					$this->writeln('<info>'._('Module Admin caching temporarily enabled').'</info>');
+					\FreePBX::Config()->update('MODULEADMIN_SKIP_CACHE',1);
+				}
+			}
 			if($input->getOption('edge')) {
 				$this->previousEdge = \FreePBX::Config()->get('MODULEADMINEDGE');
 				if($this->previousEdge) {
@@ -207,6 +218,11 @@ class Moduleadmin extends Command {
 		if(!is_null($this->previousEdge)) {
 			$this->writeln("<info>Resetting temporarily repository state</info>");
 			\FreePBX::Config()->update('MODULEADMINEDGE',$this->previousEdge);
+		}
+      
+      	if(!is_null($this->previousCache)) {
+			$this->writeln("<info>Resetting temporarily Module Admin Caching state</info>");
+			\FreePBX::Config()->update('MODULEADMIN_SKIP_CACHE',$this->previousCache);
 		}
 	}
 
