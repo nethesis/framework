@@ -174,10 +174,10 @@ class Moduleadmin extends Command {
 			if($input->getOption('ignorecache')){
 				$this->previousCache = \FreePBX::Config()->get('MODULEADMIN_SKIP_CACHE');
 				if($this->previousCache) {
-					$this->writeln('<info>'._('Module Admin caching already enabled, ignoring option').'</info>');
+					$this->writeln('<info>'._('Disable Module Admin caching already enabled, ignoring option').'</info>');
 					$this->previousCache = null;
 				} else {
-					$this->writeln('<info>'._('Module Admin caching temporarily enabled').'</info>');
+					$this->writeln('<info>'._('Disable Module Admin caching temporarily enabled').'</info>');
 					\FreePBX::Config()->update('MODULEADMIN_SKIP_CACHE',1);
 				}
 			}
@@ -222,7 +222,7 @@ class Moduleadmin extends Command {
 		}
       
       	if(!is_null($this->previousCache)) {
-			$this->writeln("<info>Resetting temporarily Module Admin Caching state</info>");
+			$this->writeln("<info>Resetting temporary state for Disable Module Admin caching</info>");
 			\FreePBX::Config()->update('MODULEADMIN_SKIP_CACHE',$this->previousCache);
 		}
 	}
