@@ -57,6 +57,7 @@ class Moduleadmin extends Command {
 			new InputOption('force', 'f', InputOption::VALUE_NONE, _('Force operation (skips dependency and status checks) <warning>WARNING:</warning> Use at your own risk, modules have dependencies for a reason!')),
 			new InputOption('debug', 'd', InputOption::VALUE_NONE, _('Output debug messages to the console (be super chatty)')),
 			new InputOption('edge', '', InputOption::VALUE_NONE, _('Download/Upgrade forcing edge mode')),
+            new InputOption('ignorecache', '', InputOption::VALUE_NONE, _('Ignore cache')),
 			new InputOption('stable', '', InputOption::VALUE_NONE, _('Download/Upgrade forcing stable version')),
 			new InputOption('color', '', InputOption::VALUE_NONE, _('Colorize table based list')),
 			new InputOption('skipchown', '', InputOption::VALUE_NONE, _('Skip the chown operation')),
