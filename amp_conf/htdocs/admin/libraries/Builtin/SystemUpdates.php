@@ -177,6 +177,10 @@ class SystemUpdates {
 		// Now find the important parts
 		foreach ($logfile as $lineno => $line) {
 
+			if (strpos($line, "Loaded plugins") === 0 || strpos($line, "Loading mirror") === 0) {
+				continue;
+			}
+			
 			// Title?
 			if (strpos($line, "TITLE ") === 0) {
 				if (!preg_match('/^TITLE (\d+) (.+)$/', $line, $out)) {
