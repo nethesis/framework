@@ -177,10 +177,6 @@ class SystemUpdates {
 		// Now find the important parts
 		foreach ($logfile as $lineno => $line) {
 
-			if (strpos($line, "Loaded plugins") === 0 || strpos($line, "Loading mirror") === 0) {
-				continue;
-			}
-			
 			// Title?
 			if (strpos($line, "TITLE ") === 0) {
 				if (!preg_match('/^TITLE (\d+) (.+)$/', $line, $out)) {
@@ -497,6 +493,23 @@ class SystemUpdates {
 		// We should have some output that can be displayed to the user
 		if (file_exists("/dev/shm/yumwrapper/yum-update-current.log")) {
 			$retarr['currentlog'] = file("/dev/shm/yumwrapper/yum-update-current.log", FILE_IGNORE_NEW_LINES);
+			$summary = array();
+			$summary[] = "--------------------------------------------------------------------------";
+			$record_summary = false;
+				foreach($retarr['currentlog'] as $index => $line) {
+					$record_summary = (preg_match("~\bTransaction Summary\b~",$line)) ? true : $record_summary;
+					$record_summary = ( preg_match("~\bDownloading packages\b~",$line) ) ? false : $record_summary;
+					if (strpos($line, "No packages marked") === 0){
+					$summary[] = "Transaction Summary : ".$retarr['currentlog'][$index];
+					$retarr['currentlog'] =[];
+					break;
+					}
+					if($record_summary && !(strpos($line, "============") === 0)){
+					$summary[] = $retarr['currentlog'][$index];
+					}
+					}
+			$summary[] = "-------------------------------------------------------------------------- \n \n \n ";
+			$retarr['currentlog'] = array_merge($summary,$retarr['currentlog']);
 		}
 
 		// Has it finished?
