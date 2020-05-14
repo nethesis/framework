@@ -496,18 +496,18 @@ class SystemUpdates {
 			$summary = array();
 			$summary[] = "--------------------------------------------------------------------------";
 			$record_summary = false;
-				foreach($retarr['currentlog'] as $index => $line) {
-					$record_summary = (preg_match("~\bTransaction Summary\b~",$line)) ? true : $record_summary;
-					$record_summary = ( preg_match("~\bDownloading packages\b~",$line) ) ? false : $record_summary;
-					if (strpos($line, "No packages marked") === 0){
+			foreach($retarr['currentlog'] as $index => $line) {
+				$record_summary = (preg_match("~\bTransaction Summary\b~",$line)) ? true : $record_summary;
+				$record_summary = ( preg_match("~\bDownloading packages\b~",$line) ) ? false : $record_summary;
+				if (strpos($line, "No packages marked") === 0){
 					$summary[] = "Transaction Summary : ".$retarr['currentlog'][$index];
 					$retarr['currentlog'] =[];
 					break;
-					}
-					if($record_summary && !(strpos($line, "============") === 0)){
+				}
+				if($record_summary && !(strpos($line, "============") === 0)){
 					$summary[] = $retarr['currentlog'][$index];
-					}
-					}
+				}
+			}
 			$summary[] = "-------------------------------------------------------------------------- \n \n \n ";
 			$retarr['currentlog'] = array_merge($summary,$retarr['currentlog']);
 		}
