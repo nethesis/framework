@@ -304,6 +304,7 @@ class Destinations {
 
 		$this->FreePBX->Modules->loadAllFunctionsInc();
 		foreach ($dest as $target) {
+			$target = (string)$target;
 			if (isset($this->dest_cache[$target])) {
 				$dest_results[$target] = $this->dest_cache[$target];
 			} else {
@@ -318,7 +319,6 @@ class Destinations {
 							$found_owner = true;
 							$this->dest_cache[$target] = array($mod => $check_module);
 							$dest_results[$target] = $this->dest_cache[$target];
-							break;
 						}
 					}
 				}
