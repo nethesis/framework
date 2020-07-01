@@ -314,7 +314,8 @@ class Destinations {
 						modgettext::push_textdomain($mod);
 						$check_module = $function($target);
 						modgettext::pop_textdomain();
-						if ($check_module !== false) {
+						$check_dest = array($mod => $check_module);
+						if ($check_module !== false && isset($check_dest[$mod]) && !empty($check_dest[$mod])) {
 							$found_owner = true;
 							$this->dest_cache[$target] = array($mod => $check_module);
 							$dest_results[$target] = $this->dest_cache[$target];
