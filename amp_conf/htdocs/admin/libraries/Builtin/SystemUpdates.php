@@ -387,6 +387,22 @@ class SystemUpdates {
 		return $rpms;
 	}
 
+	public function checkNotInstalledPkg(array $rpmResult) {
+		$first_word = 'package';
+		$last_word = 'is not installed';
+		if (empty($rpmResult)) {
+			return false;
+		}
+		$notinstalledpkgs = [];
+		foreach($rpmResult as $k=>$v) {
+			if(preg_match('/^' . $first_word . '\b(.*)\b' . $last_word .'$/' , $v, $matches)) {
+				$notinstalledpkgs[] = $matches[1];
+			}
+		}
+		return $notinstalledpkgs;
+	}
+
+
 	/**
 	 * Run rpm to get the list of current versions
 	 *
@@ -408,11 +424,16 @@ class SystemUpdates {
 		$cmd = '/usr/bin/rpm -q --queryformat "%{NAME}.%{ARCH} %{VERSION}.%{RELEASE}\n" '.join(" ", $rpms);
 		exec($cmd, $output, $ret);
 		if ($ret !== 0 && $ret !== 6) {
-			// 6 = new packages are going to be installed
-			if (function_exists("freepbx_log")) {
-				freepbx_log(FPBX_LOG_CRITICAL, "Update error: Tried to run '$cmd', exit code $ret");
+			$pkglist = $this->checkNotInstalledPkg($output);
+			if ($pkglist) {
+				//not installed package present so might not be the real failure.. continue with processing..
+			} else {
+				// 6 = new packages are going to be installed
+				if (function_exists("freepbx_log")) {
+					freepbx_log(FPBX_LOG_CRITICAL, "Update error: Tried to run '$cmd', exit code $ret");
+				}
+				throw new \Exception("RPM command errored, Delete /dev/shm/yumwrapper/* and try again. Exit code $ret - see FreePBX log for more info.");
 			}
-			throw new \Exception("RPM command errored, Delete /dev/shm/yumwrapper/* and try again. Exit code $ret - see FreePBX log for more info.");
 		}
 
 		// Map the output of the rpm command to a temporary dict
