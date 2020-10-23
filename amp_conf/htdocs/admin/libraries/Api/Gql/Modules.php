@@ -13,9 +13,132 @@ class Modules extends Base {
 		return [
 				'read:modules' => [
 						'description' => _('Read module information'),
+				],
+				'write:modules' => [
+						'description' => _('module upgrade/degrade operations'),
 				]
 		];
 	}
+	public function mutationCallback() {
+		if($this->checkReadScope('modules')) {
+			return function() {
+				return [
+				'moduleupgrade' => Relay::mutationWithClientMutationId([
+						'name' => 'moduleupgrade',
+						'description' => _('upgrage a given module from the given track(edge/stable)'),
+						'inputFields' => $this->getMutationFields(),
+						'outputFields' => [
+							'upgraderesult' => [
+								'type' => Type::nonNull(Type::string()),
+								'resolve' => function ($payload) {
+									return $payload['upgraderesult'];
+								}
+							]
+						],
+						'mutateAndGetPayload' => function ($input) {
+							$module = strtolower($input['module']);
+							$track = $input['track'];
+							$bin = \FreePBX::Config()->get('AMPSBIN');
+							$cmd = $bin.'/fwconsole ma downloadinstall '.$module;
+							if(strtoupper($track) == 'EDGE'){
+								$cmd = $cmd.' --edge';
+							}else {
+								$cmd = $cmd.' --stable';
+							}
+							exec($cmd, $output, $retval);
+							$output = json_encode($output);
+							return ['upgraderesult' => $output];
+						}
+					]),
+				'moduletag' => Relay::mutationWithClientMutationId([
+						'name' => 'moduletag',
+						'description' => _('upgrage/degrade a module using tag'),
+						'inputFields' => $this->getMutationFieldstag(),
+						'outputFields' => [
+							'upgraderesult' => [
+								'type' => Type::nonNull(Type::string()),
+								'resolve' => function ($payload) {
+									return $payload['upgraderesult'];
+								}
+							]
+						],
+						'mutateAndGetPayload' => function ($input) {
+							$module = strtolower($input['module']);
+							$tag = $input['tag'];
+							$bin = \FreePBX::Config()->get('AMPSBIN');
+							$cmd = $bin.'/fwconsole ma downloadinstall '.$module.' --tag '.$tag;
+							exec($cmd, $output, $retval);
+							$output = json_encode($output);
+							return ['upgraderesult' => $output];
+						}
+					]),
+					'moduleaction' => Relay::mutationWithClientMutationId([
+						'name' => 'moduleaction',
+						'description' => _('perform a module action '),
+						'inputFields' => $this->getMutationFieldmodule(),
+						'outputFields' => [
+							'actionstatus' => [
+								'type' => Type::nonNull(Type::string()),
+								'resolve' => function ($payload) {
+									return $payload['actionstatus'];
+								}
+							]
+						],
+						'mutateAndGetPayload' => function ($input) {
+							$module = strtolower($input['module']);
+							$action = strtolower($input['action']);
+							$bin = \FreePBX::Config()->get('AMPSBIN');
+							$cmd = $bin.'/fwconsole ma '.$action.' '.$module;
+							exec($cmd, $output, $retval);
+							$output = json_encode($output);
+							return ['actionstatus' => $output];
+						}
+					])
+					
+				];
+			};
+		}
+	}
+	private function getMutationFields() {
+		return [
+			'module' => [
+				'type' => Type::nonNull(Type::string()),
+				'description' => _('module Name which you want to upgrade')
+			],
+			'track' => [
+				'type' => Type::nonNull(Type::string()),
+				'description' => _('Track name (edge/stable) ')
+			],
+		];
+	}
+	
+	private function getMutationFieldmodule() {
+		return [
+			'module' => [
+				'type' => Type::nonNull(Type::string()),
+				'description' => _('module Name ')
+			],
+			'action' => [
+				'type' => Type::nonNull(Type::string()),
+				'description' => _('Action you want perform on a module [install/uninstall/enable/disable/remove]')
+			],
+		];
+	}
+
+	private function getMutationFieldstag() {
+		return [
+			'module' => [
+				'type' => Type::nonNull(Type::string()),
+				'description' => _('module Name which you want to upgrade/degrade')
+			],
+			'tag' => [
+				'type' => Type::nonNull(Type::string()),
+				'description' => _('Version number')
+			],
+		];
+	}
+
+
 	public function queryCallback() {
 		if($this->checkReadScope('modules')) {
 			return function() {
