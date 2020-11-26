@@ -160,6 +160,7 @@ class Database extends \PDO {
 	 * @param string cmdName = mysql or mysqldump
 	 */
 	public function fetchSqlCommand($mysqlCmd='mysql') {
+		global $amp_conf;
 		$host = $amp_conf['AMPDBHOST'];
 		$port = isset($amp_conf['AMPDBPORT'])?$amp_conf['AMPDBPORT']:'';
 		$dbuser = $this->FreePBX->Config->get('AMPDBUSER') ? $this->FreePBX->Config->get('AMPDBUSER'):$amp_conf['AMPDBUSER'];
@@ -176,7 +177,6 @@ class Database extends \PDO {
 		}else {
 			$portnum = '-P '.$port;
 		}
-		dbug("dbpass = ".$amp_conf['AMPDBPASS']);
 		$sqlCommand = "{$mysqlCmd} {$portnum} {$hostname} -u{$dbuser} -p{$dbpass} {$dbname} ";
 
 		return $sqlCommand;
