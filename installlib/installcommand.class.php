@@ -27,6 +27,10 @@ class FreePBXInstallCommand extends Command {
 			'default' => 'localhost',
 			'description' => 'Database server address'
 		),
+		'dbport' => array(
+			'default' => '3306',
+			'description' => 'Database server port'
+		),
 		'cdrdbname' => array(
 			'default' => 'asteriskcdrdb',
 			'description' => 'CDR Database name'
@@ -290,10 +294,10 @@ class FreePBXInstallCommand extends Command {
 			// Parse Asterisk version.
 			if (preg_match('/^Asterisk (?:SVN-|GIT-)?(?:branch-)?(\d+(\.\d+)*)(-?(.*)) built/', $astver, $matches)) {
 				$determined = true;
-				if (version_compare($matches[1], "13", "lt") || version_compare($matches[1], "18", "ge")) {
+				if (version_compare($matches[1], "13", "lt") || version_compare($matches[1], "19", "ge")) {
 					$output->writeln("<error>Error!</error>");
 					$output->writeln("<error>Unsupported Version of ". $matches[1]."</error>");
-					$output->writeln("<error>Supported Asterisk versions: 13, 14, 15, 16, 17</error>");
+					$output->writeln("<error>Supported Asterisk versions: 13, 14, 15, 16, 17, 18</error>");
 					exit(1);
 				}
 				$output->writeln("Yes. Determined Asterisk version to be: ".$matches[1]);
@@ -433,6 +437,7 @@ class FreePBXInstallCommand extends Command {
 			$amp_conf['AMPDBUSER'] = $answers['dbuser'];
 			$amp_conf['AMPDBPASS'] = $answers['dbpass'];
 			$amp_conf['AMPDBHOST'] = $answers['dbhost'];
+			$amp_conf['AMPDBPORT'] = $answers['dbport'];
 
 			if($dbroot) {
 				$output->write("Database Root installation checking credentials and permissions..");
@@ -806,6 +811,7 @@ class FreePBXInstallCommand extends Command {
 \$amp_conf['AMPDBUSER'] = '{$amp_conf['AMPDBUSER']}';
 \$amp_conf['AMPDBPASS'] = '{$amp_conf['AMPDBPASS']}';
 \$amp_conf['AMPDBHOST'] = '{$amp_conf['AMPDBHOST']}';
+\$amp_conf['AMPDBPORT'] = '{$amp_conf['AMPDBPORT']}';
 \$amp_conf['AMPDBNAME'] = '{$amp_conf['AMPDBNAME']}';
 \$amp_conf['AMPDBENGINE'] = '{$amp_conf['AMPDBENGINE']}';
 \$amp_conf['datasource'] = ''; //for sqlite3

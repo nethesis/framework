@@ -527,13 +527,13 @@ div.attention {
 .nav > li > a:hover,
 .nav > li > a:focus {
 	text-decoration: none;
-	background-color: rgba(222, 237, 247, 0.5);
+	background-color: rgb(206, 234, 220, 0.9);
 	color: rgb(132, 132, 132);
 }
 .panel-info {
     border-color: @border-color;
 }
-.panel-info >.panel-heading, .alert-info {	
+.panel-info >.panel-heading, .alert-info, .panel-default>.panel-heading {	
     color: @info-text-color;
     background-color: @info-background-color;
     border-color: @border-color;
@@ -847,4 +847,30 @@ div.attention {
  */
 .pd {
 	padding-top: 0.5em
+}
+
+/**
+ * Panel
+ */
+.panel>.panel-heading.collapsed {
+	border-bottom: 0px;
+	border-bottom-left-radius:  @panel-border-radius;
+	border-bottom-right-radius: @panel-border-radius;
+}
+
+.panel.panel-help {
+	.panel-heading .panel-title .pull-left {
+		margin-right: 5px;
+	}
+	.panel-heading.collapsed {
+		border-bottom: 0px;
+		border-bottom-left-radius:  @panel-border-radius;
+		border-bottom-right-radius: @panel-border-radius;
+	}
+	.panel-heading .chevron:after {
+		content: "\f068";	// fa-minus
+	}
+	.panel-heading.collapsed .chevron:after {
+		content: "\f067";   // fa-plus 
+	}
 }
