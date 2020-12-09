@@ -21,6 +21,7 @@ class Modules extends DB_Helper{
 	private $validLicense = null;
 	private static $functionIncLoaded = [];
 	private $conflictsCache = [];
+	private static $apiHooks= false;
 
 	// Cache for XML objects
 	private $modulexml = array();
@@ -42,6 +43,18 @@ class Modules extends DB_Helper{
 		if(self::$count > 1) {
 			throw new \Exception("The 'Modules' class has loaded more than once! This is a serious error!");
 		}
+	}
+
+	//injecting for utest
+	public function setRunHook($runHookObj){
+		self::$apiHooks = $runHookObj;
+	}
+
+	public function ApiHooks() {
+		if (!self::$apiHooks) {
+			self::$apiHooks  = \FreePBX::Hooks();
+		}
+		return self::$apiHooks;
 	}
 
 	/**

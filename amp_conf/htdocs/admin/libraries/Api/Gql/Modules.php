@@ -27,86 +27,34 @@ class Modules extends Base {
 						'name' => 'moduleOperations',
 						'description' => _('Will Perform a module install/uninstall/enable/disable/downloadinstall based on action,module and track'),
 						'inputFields' => $this->getMutationFieldModule(),
-						'outputFields' => [
-							'status' => [
-								'type' => Type::nonNull(Type::string()),
-								'resolve' => function ($payload) {
-									return $payload['status'];
-								}
-							],
-							'message' => [
-								'type' => Type::string(),
-								'resolve' => function ($payload) {
-									return $payload['message'];
-								}
-							]
-						],
+						'outputFields' =>$this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
 							return $this->moduleAction($input);
 						}
 					]),
-					'install-Uninstall' => Relay::mutationWithClientMutationId([
-						'name' => 'moduleOperations',
+				'installOrUninstall' => Relay::mutationWithClientMutationId([
+						'name' => 'installUninstall',
 						'description' => _('Will Perform a module install/uninstall based on action,module and track'),
 						'inputFields' => $this->getMutationFieldModule(),
-						'outputFields' => [
-							'status' => [
-								'type' => Type::nonNull(Type::string()),
-								'resolve' => function ($payload) {
-									return $payload['status'];
-								}
-							],
-							'message' => [
-								'type' => Type::string(),
-								'resolve' => function ($payload) {
-									return $payload['message'];
-								}
-							]
-						],
+						'outputFields' => $this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
 							return $this->moduleAction($input);
 						}
 					]),
-					'enable-disable' => Relay::mutationWithClientMutationId([
-						'name' => 'moduleOperations',
+				'enableOrDisable' => Relay::mutationWithClientMutationId([
+						'name' => 'enable-disable',
 						'description' => _('Will Perform a module enable/disable based on action,module and track'),
 						'inputFields' => $this->getMutationFieldModule(),
-						'outputFields' => [
-							'status' => [
-								'type' => Type::nonNull(Type::string()),
-								'resolve' => function ($payload) {
-									return $payload['status'];
-								}
-							],
-							'message' => [
-								'type' => Type::string(),
-								'resolve' => function ($payload) {
-									return $payload['message'];
-								}
-							]
-						],
+						'outputFields' => $this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
 							return $this->moduleAction($input);
 						}
 					]),
-					'delete-upgrade' => Relay::mutationWithClientMutationId([
-						'name' => 'moduleOperations',
+				'deleteOrUpgrade' => Relay::mutationWithClientMutationId([
+						'name' => 'delete-upgrade',
 						'description' => _('Will Perform a module delete/upgrade based on action,module and track'),
 						'inputFields' => $this->getMutationFieldModule(),
-						'outputFields' => [
-							'status' => [
-								'type' => Type::nonNull(Type::string()),
-								'resolve' => function ($payload) {
-									return $payload['status'];
-								}
-							],
-							'message' => [
-								'type' => Type::string(),
-								'resolve' => function ($payload) {
-									return $payload['message'];
-								}
-							]
-						],
+						'outputFields' => $this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
 							return $this->moduleAction($input);
 						}
@@ -171,8 +119,11 @@ class Modules extends Base {
 						],
 						'resolve' => function($root, $args) {
 							$module = $this->freepbx->Modules->getInfo($args['rawname']);
-							dbug($module);
-							return !empty($module) ? $module['builtin'] : null;
+							if(!empty($module)){
+								return ['message'=> $module['builtin']['status'],'status'=>true];
+							}else{
+								return ['message'=> null,'status'=>false];
+							}
 						}
 					]
 				];
@@ -196,12 +147,12 @@ class Modules extends Base {
 		$user->addFieldCallback(function() {
 			return [
 				'status' => [
-					'type' => $this->getEnumStatuses(),
+					'type' => Type::string(),
 					'description' => 'Module Status'
 				],
 				'rawname' => [
 					'type' => Type::string(),
-					'description' => 'The number to block'
+					'description' => 'Raw name of the module'
 				],
 				'repo' => [
 					'type' => Type::string(),
@@ -243,6 +194,10 @@ class Modules extends Base {
 					'type' => Type::string(),
 					'description' => 'The number to block'
 				],
+				'message' =>[
+					'type' =>  $this->getEnumStatuses(),
+					'description' => _('Message for the request')
+				]
 			];
 		});
 
@@ -311,12 +266,35 @@ class Modules extends Base {
 		$track = (strtoupper(isset($input['track'])) == 'EDGE') ? '--edge' : '--stable';
 
 		$txnId = $this->freepbx->api->addTransaction("Processing","Framework","gql-run-module-admin");
-		$output = $this->freepbx->Hooks->runModuleSystemHook('framework','gql-run-module-admin',array($module,$action,$track,$txnId));
+		$output = $this->freepbx->Modules->ApiHooks()->runModuleSystemHook('framework','gql-run-module-admin',array($module,$action,$track,$txnId));
 
 		if($output){
-			return ['message' => "$action on $module has been initiated", 'status' => True];
+			return ['message' => "$action on $module has been initiated,Kindly check the status details api with the transaction id.", 'status' => True ,'transaction_id' => $txnId];
 		}else{
 			return ['message' => "Sorry could not initiate $action on $module", 'status' => False];
 		}
+	}
+
+	public function getOutputFields(){
+		return [
+					'status' => [
+						'type' => Type::nonNull(Type::string()),
+						'resolve' => function ($payload) {
+							return $payload['status'];
+						}
+					],
+					'message' => [
+						'type' => Type::string(),
+						'resolve' => function ($payload) {
+						return $payload['message'];
+					  }
+					],
+					'transaction_id' => [
+						'type' => Type::string(),
+						'resolve' => function ($payload) {
+						return $payload['transaction_id'];
+					  }
+					]
+				];
 	}
 }
