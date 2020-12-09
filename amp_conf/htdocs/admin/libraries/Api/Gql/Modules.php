@@ -8,14 +8,14 @@ use FreePBX\modules\Api\Gql\Base;
 use GraphQL\Type\Definition\EnumType;
 
 class Modules extends Base {
-	protected $description = 'Modules provide functionality to your PBX';
+	protected $description = 'Provide functionality to your PBX Modules';
 	public static function getScopes() {
 		return [
 				'read:modules' => [
 						'description' => _('Read module information'),
 				],
 				'write:modules' => [
-						'description' => _('module upgrade/degrade operations'),
+						'description' => _('Module upgrade/degrade operations'),
 				]
 		];
 	}
@@ -23,121 +23,123 @@ class Modules extends Base {
 		if($this->checkReadScope('modules')) {
 			return function() {
 				return [
-				'moduleupgrade' => Relay::mutationWithClientMutationId([
-						'name' => 'moduleupgrade',
-						'description' => _('upgrage a given module from the given track(edge/stable)'),
-						'inputFields' => $this->getMutationFields(),
-						'outputFields' => [
-							'upgraderesult' => [
-								'type' => Type::nonNull(Type::string()),
-								'resolve' => function ($payload) {
-									return $payload['upgraderesult'];
-								}
-							]
-						],
-						'mutateAndGetPayload' => function ($input) {
-							$module = strtolower($input['module']);
-							$track = $input['track'];
-							$bin = \FreePBX::Config()->get('AMPSBIN');
-							$cmd = $bin.'/fwconsole ma downloadinstall '.$module;
-							if(strtoupper($track) == 'EDGE'){
-								$cmd = $cmd.' --edge';
-							}else {
-								$cmd = $cmd.' --stable';
-							}
-							exec($cmd, $output, $retval);
-							$output = json_encode($output);
-							return ['upgraderesult' => $output];
-						}
-					]),
-				'moduletag' => Relay::mutationWithClientMutationId([
+				// 'upgrade' => Relay::mutationWithClientMutationId([
+				// 		'name' => 'moduleupgrade',
+				// 		'description' => _('Upgrage a given module from the given track(edge/stable)'),
+				// 		'inputFields' => $this->getMutationFields(),
+				// 		'outputFields' => [
+				// 			'status' => [
+				// 				'type' => Type::nonNull(Type::string()),
+				// 				'resolve' => function ($payload) {
+				// 					return $payload['status'];
+				// 				}
+				// 			],
+				// 			'message' => [
+				// 				'type' => Type::nonNull(Type::string()),
+				// 				'resolve' => function ($payload) {
+				// 					return $payload['message'];
+				// 				}
+				// 			]
+				// 		],
+				// 		'mutateAndGetPayload' => function ($input) {
+				// 			$module = strtolower($input['module']);
+				// 			$track = $input['track'];
+				// 			$bin = \FreePBX::Config()->get('AMPSBIN');
+				// 			$cmd = $bin.'/fwconsole ma downloadinstall '.$module;
+				// 			if(strtoupper($track) == 'EDGE'){
+				// 				$cmd = $cmd.' --edge';
+				// 			}else {
+				// 				$cmd = $cmd.' --stable';
+				// 			}
+				// 			exec($cmd, $output, $retval);
+				// 			$output = json_encode($output);
+				// 			return ['message' => $output ,'status' => true];
+				// 		}
+				// 	]),
+				'InstallUpdate' => Relay::mutationWithClientMutationId([
 						'name' => 'moduletag',
-						'description' => _('upgrage/degrade a module using tag'),
-						'inputFields' => $this->getMutationFieldstag(),
+						'description' => _('Install or update a module'),
+						'inputFields' => $this->getMutationFieldModule(),
 						'outputFields' => [
-							'upgraderesult' => [
+							'message' => [
 								'type' => Type::nonNull(Type::string()),
 								'resolve' => function ($payload) {
-									return $payload['upgraderesult'];
+									return $payload['message'];
 								}
-							]
-						],
-						'mutateAndGetPayload' => function ($input) {
-							$module = strtolower($input['module']);
-							$tag = $input['tag'];
-							$bin = \FreePBX::Config()->get('AMPSBIN');
-							$cmd = $bin.'/fwconsole ma downloadinstall '.$module.' --tag '.$tag;
-							exec($cmd, $output, $retval);
-							$output = json_encode($output);
-							return ['upgraderesult' => $output];
-						}
-					]),
-					'moduleaction' => Relay::mutationWithClientMutationId([
-						'name' => 'moduleaction',
-						'description' => _('perform a module action '),
-						'inputFields' => $this->getMutationFieldmodule(),
-						'outputFields' => [
-							'actionstatus' => [
+							],
+							'status'=> [
 								'type' => Type::nonNull(Type::string()),
 								'resolve' => function ($payload) {
-									return $payload['actionstatus'];
+									return $payload['status'];
 								}
-							]
+							],
 						],
 						'mutateAndGetPayload' => function ($input) {
 							$module = strtolower($input['module']);
 							$action = strtolower($input['action']);
+					      $track = (strtoupper(isset($input['track'])) == 'EDGE') ? '--edge' : '--stable';
+
 							$bin = \FreePBX::Config()->get('AMPSBIN');
-							$cmd = $bin.'/fwconsole ma '.$action.' '.$module;
+							$cmd = $bin.'/fwconsole ma '.$action.' '.$module.' '.$track;
 							exec($cmd, $output, $retval);
 							$output = json_encode($output);
-							return ['actionstatus' => $output];
+
+							return ['message' => $output, 'status' => True];
+						}
+					]),
+				'moduleOperations' => Relay::mutationWithClientMutationId([
+						'name' => 'moduleOperations',
+						'description' => _('Will Perform a module install/uninstall/enable/disable/downloadinstall based on action,module and track'),
+						'inputFields' => $this->getMutationFieldModule(),
+						'outputFields' => [
+							'status' => [
+								'type' => Type::nonNull(Type::string()),
+								'resolve' => function ($payload) {
+									return $payload['status'];
+								}
+							],
+							'message' => [
+								'type' => Type::string(),
+								'resolve' => function ($payload) {
+									return $payload['message'];
+								}
+							]
+						],
+						'mutateAndGetPayload' => function ($input) {
+							
+							$module = strtolower($input['module']);
+							$action = strtolower($input['action']);
+					      $track = (strtoupper(isset($input['track'])) == 'EDGE') ? '--edge' : '--stable';
+
+							$bin = \FreePBX::Config()->get('AMPSBIN');
+							$cmd = $bin.'/fwconsole ma '.$action.' '.$module.' '.$track;
+							exec($cmd, $output, $retval);
+							$output = json_encode($output);
+
+							return ['message' => $output, 'status' => True];
 						}
 					])
-					
 				];
 			};
 		}
 	}
-	private function getMutationFields() {
-		return [
-			'module' => [
-				'type' => Type::nonNull(Type::string()),
-				'description' => _('module Name which you want to upgrade')
-			],
-			'track' => [
-				'type' => Type::nonNull(Type::string()),
-				'description' => _('Track name (edge/stable) ')
-			],
-		];
-	}
 	
-	private function getMutationFieldmodule() {
+	private function getMutationFieldModule() {
 		return [
 			'module' => [
 				'type' => Type::nonNull(Type::string()),
-				'description' => _('module Name ')
+				'description' => _('Module name which you want to upgrade/degrade')
 			],
 			'action' => [
 				'type' => Type::nonNull(Type::string()),
 				'description' => _('Action you want perform on a module [install/uninstall/enable/disable/remove]')
 			],
+			'track' => [
+				'type' => Type::string(),
+				'description' => _('Track module (edge/stable) ')
+			]
 		];
 	}
-
-	private function getMutationFieldstag() {
-		return [
-			'module' => [
-				'type' => Type::nonNull(Type::string()),
-				'description' => _('module Name which you want to upgrade/degrade')
-			],
-			'tag' => [
-				'type' => Type::nonNull(Type::string()),
-				'description' => _('Version number')
-			],
-		];
-	}
-
 
 	public function queryCallback() {
 		if($this->checkReadScope('modules')) {
@@ -170,14 +172,15 @@ class Modules extends Base {
 						'type' => $this->typeContainer->get('module')->getObject(),
 						'description' => $this->description,
 						'args' => [
-							'id' => [
-								'type' => Type::id(),
-								'description' => 'The ID',
+							'rawname' => [
+								'type' => Type::string(),
+								'description' => 'The module rawname',
 							]
 						],
 						'resolve' => function($root, $args) {
-							$module = $this->freepbx->Modules->getInfo(Relay::fromGlobalId($args['id'])['id']);
-							return !empty($module) ? $module : null;
+							$module = $this->freepbx->Modules->getInfo($args['rawname']);
+							dbug($module);
+							return !empty($module) ? $module['builtin'] : null;
 						}
 					]
 				];
@@ -200,9 +203,9 @@ class Modules extends Base {
 
 		$user->addFieldCallback(function() {
 			return [
-				'id' => Relay::globalIdField('module', function($row) {
-					return $row['rawname'];
-				}),
+				// 'id' => Relay::globalIdField('module', function($row) {
+				// 	return $row['rawname'];
+				// }),
 				'status' => [
 					'type' => $this->getEnumStatuses(),
 					'description' => 'Module Status'
@@ -285,8 +288,8 @@ class Modules extends Base {
 			return $this->moduleStatuses;
 		}
 		$this->moduleStatuses = new EnumType([
-			'name' => 'modulesStatuses',
-			'description' => 'Module Statuses',
+			'name' => 'Module status',
+			'description' => 'Module status',
 			'values' => [
 				'notInstalled' => [
 					'value' => 0,
