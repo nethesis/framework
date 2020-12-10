@@ -21,7 +21,7 @@ class Modules extends DB_Helper{
 	private $validLicense = null;
 	private static $functionIncLoaded = [];
 	private $conflictsCache = [];
-	private static $apiHooks= false;
+	public static $gqlApi = false;
 
 	// Cache for XML objects
 	private $modulexml = array();
@@ -46,15 +46,22 @@ class Modules extends DB_Helper{
 	}
 
 	//injecting for utest
-	public function setRunHook($runHookObj){
-		self::$apiHooks = $runHookObj;
+	public function setObj($obj){
+		self::$gqlApi = $obj;
 	}
 
-	public function ApiHooks() {
-		if (!self::$apiHooks) {
-			self::$apiHooks  = \FreePBX::Hooks();
+	public function initiateGqlAPIProcess($args) {
+		$bin = $this->FreePBX->Config()->get('AMPSBIN');
+		shell_exec($bin.'/fwconsole ma gql '.$args[0].' '.$args[1].' '.$args[2].' '.$args[3].' >/dev/null 2>/dev/null &');
+	}
+
+	public function execGqlApi() 
+	{
+		if(!self::$gqlApi){
+			include_once __DIR__ . '/../ModulesGqlHelper.class.php';
+			self::$gqlApi = \FreePBX::ModulesGqlHelper();
 		}
-		return self::$apiHooks;
+		return self::$gqlApi;
 	}
 
 	/**

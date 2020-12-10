@@ -19,47 +19,20 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
     {
       parent::tearDownAfterClass();
     }
-
-    public function testModuleOperationswhenHookDoesNotExcuteShoudReturnErrors()
-    {
-      $module = 'core';
-      $action = 'install';
-
-      $mockRunhook = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\BMO\Hooks::class)
-       ->disableOriginalConstructor()
-       ->setMethods(array('runModuleSystemHook'))
-       ->getMock();
-
-     $mockRunhook->method('runModuleSystemHook')->willReturn(false);
-
-     self::$freepbx->Modules->setRunHook($mockRunhook);   
-
-      $response = $this->request("mutation {
-        moduleOperations(input: { 
-          module: \"{$module}\" 
-          action: \"{$action}\" }) 
-          { status message }
-        }
-      ");
-
-		  $json = (string)$response->getBody();
-
-	  	$this->assertEquals('{"errors":[{"message":"Sorry could not initiate '.$action.' on '.$module.'","status":"false"}]}', $json);
-    }
-
+  
     public function testModuleOperationswhenHookExcuteShoudReturnTrue()
     {
       $module = 'core';
       $action = 'install';
 
-     $mockRunhook = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\BMO\Hooks::class)
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\ModulesGqlHelper::class)
        ->disableOriginalConstructor()
-       ->setMethods(array('runModuleSystemHook'))
+       ->setMethods(array('processGqlApi'))
        ->getMock();
 
-     $mockRunhook->method('runModuleSystemHook')->willReturn(true);
+      $mockGqlHelper->method('processGqlApi')->willReturn(true);
 
-     self::$freepbx->Modules->setRunHook($mockRunhook);  
+     self::$freepbx->Modules->setObj($mockGqlHelper);  
 
       $response = $this->request("mutation {
         moduleOperations(input: { 
@@ -71,21 +44,21 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
 
 		  $json = (string)$response->getBody();
 
-	  	$this->assertEquals('{"data":{"moduleOperations":{"status":"true","message":"'.$action.' on '.$module.' has been initiated,Kindly check the status details api with the transaction id."}}}', $json);
+	  	$this->assertEquals('{"data":{"moduleOperations":{"status":"true","message":"'.$action.' on '.$module.' has been initiated. Please check the getApiStatus api with the transaction id."}}}', $json);
     }
 
     public function testModuleOperationswhenActionParamNotSentWillReturnErrors()
     {
       $module = 'core';
 
-      $mockRunhook = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\BMO\Hooks::class)
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\ModulesGqlHelper::class)
        ->disableOriginalConstructor()
-       ->setMethods(array('runModuleSystemHook'))
+       ->setMethods(array('processGqlApi'))
        ->getMock();
 
-     $mockRunhook->method('runModuleSystemHook')->willReturn(true);
+      $mockGqlHelper->method('processGqlApi')->willReturn(true);
 
-     self::$freepbx->Modules->setRunHook($mockRunhook);  
+     self::$freepbx->Modules->setObj($mockGqlHelper);  
 
       $response = $this->request("mutation {
         moduleOperations(input: { 
@@ -103,14 +76,14 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
     {
       $action = 'install';
 
-     $mockRunhook = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\BMO\Hooks::class)
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\ModulesGqlHelper::class)
        ->disableOriginalConstructor()
-       ->setMethods(array('runModuleSystemHook'))
+       ->setMethods(array('processGqlApi'))
        ->getMock();
 
-     $mockRunhook->method('runModuleSystemHook')->willReturn(true);
+      $mockGqlHelper->method('processGqlApi')->willReturn(true);
 
-     self::$freepbx->Modules->setRunHook($mockRunhook);  
+     self::$freepbx->Modules->setObj($mockGqlHelper);  
 
       $response = $this->request("mutation {
         moduleOperations(input: { 

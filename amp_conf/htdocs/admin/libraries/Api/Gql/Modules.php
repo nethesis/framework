@@ -263,16 +263,14 @@ class Modules extends Base {
 	public function moduleAction($input){
 		$module = strtolower($input['module']);
 		$action = strtolower($input['action']);
-		$track = (strtoupper(isset($input['track'])) == 'EDGE') ? '--edge' : '--stable';
+		$track = (strtoupper(isset($input['track'])) == 'EDGE') ? 'edge' : 'stable';
 
 		$txnId = $this->freepbx->api->addTransaction("Processing","Framework","gql-run-module-admin");
-		$output = $this->freepbx->Modules->ApiHooks()->runModuleSystemHook('framework','gql-run-module-admin',array($module,$action,$track,$txnId));
 
-		if($output){
-			return ['message' => "$action on $module has been initiated,Kindly check the status details api with the transaction id.", 'status' => True ,'transaction_id' => $txnId];
-		}else{
-			return ['message' => "Sorry could not initiate $action on $module", 'status' => False];
-		}
+		 // run as background job	
+		$this->freepbx->Modules->initiateGqlAPIProcess(array($module,$action,$track,$txnId));
+		
+		return ['message' => "$action on $module has been initiated. Please check the getApiStatus api with the transaction id.", 'status' => True ,'transaction_id' => $txnId];
 	}
 
 	public function getOutputFields(){
