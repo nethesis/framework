@@ -22,6 +22,22 @@ $set['type'] = CONF_TYPE_INT;
 
 $freepbx_conf->define_conf_setting('JOBSRANDOMSLEEP',$set, true);
 
+$set['value'] = false;
+$set['defaultval'] = $set['value'];
+$set['category'] = 'System Setup';
+$set['name'] = 'Show Updates on SSH login';
+$set['description'] = "Show system and module updates information on SSH login.";
+$set['options'] = '';
+$set['readonly'] = 0;
+$set['hidden'] = 0;
+$set['level'] = 0;
+$set['module'] = '';
+$set['emptyok'] = 0;
+$set['sortorder'] = -134;
+$set['type'] = CONF_TYPE_BOOL;
+$freepbx_conf->define_conf_setting('AMPSHOWUPDATESONSSH',$set);
+$freepbx_conf->commit_conf_settings();
+
 // HELPER FUNCTIONS:
 
 function framework_print_errors($src, $dst, $errors) {
