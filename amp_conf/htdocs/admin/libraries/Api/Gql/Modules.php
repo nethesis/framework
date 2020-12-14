@@ -267,15 +267,9 @@ class Modules extends Base {
 
 		$txnId = $this->freepbx->api->addTransaction("Processing","Framework","gql-run-module-admin");
 
-		$this->initiateGqlAPIProcess(array($module,$action,$track,$txnId));
+		$this->freepbx->api->setGqlApiHelper()->initiateGqlAPIProcess(array($module,$action,$track,$txnId));
 		
 		return ['message' => "$action on $module has been initiated. Please check the getApiStatus api with the transaction id.", 'status' => True ,'transaction_id' => $txnId];
-	}
-
-	// run as background job	
-	public function initiateGqlAPIProcess($args) {
-		$bin = $this->freepbx->Config()->get('AMPSBIN');
-		shell_exec($bin.'/fwconsole api gql '.$args[0].' '.$args[1].' '.$args[2].' '.$args[3].' >/dev/null 2>/dev/null &');
 	}
 
 	public function getOutputFields(){

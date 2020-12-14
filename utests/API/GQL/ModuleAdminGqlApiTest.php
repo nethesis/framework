@@ -25,12 +25,12 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
       $module = 'core';
       $action = 'install';
 
-      $mockGqlHelper = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\ModulesGqlHelper::class)
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
        ->disableOriginalConstructor()
-       ->setMethods(array('processGqlApi'))
+       ->setMethods(array('initiateGqlAPIProcess'))
        ->getMock();
 
-      $mockGqlHelper->method('processGqlApi')->willReturn(true);
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
 
      self::$freepbx->Api()->setObj($mockGqlHelper);  
 
@@ -51,12 +51,12 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
     {
       $module = 'core';
 
-      $mockGqlHelper = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\ModulesGqlHelper::class)
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
        ->disableOriginalConstructor()
-       ->setMethods(array('processGqlApi'))
+       ->setMethods(array('initiateGqlAPIProcess'))
        ->getMock();
 
-      $mockGqlHelper->method('processGqlApi')->willReturn(true);
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
 
      self::$freepbx->Api()->setObj($mockGqlHelper);  
 
@@ -76,14 +76,14 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
     {
       $action = 'install';
 
-      $mockGqlHelper = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\ModulesGqlHelper::class)
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
        ->disableOriginalConstructor()
-       ->setMethods(array('processGqlApi'))
+       ->setMethods(array('initiateGqlAPIProcess'))
        ->getMock();
 
-      $mockGqlHelper->method('processGqlApi')->willReturn(true);
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
 
-     self::$freepbx->Api()->setObj($mockGqlHelper);  
+     self::$freepbx->Api()->setObj($mockGqlHelper);   
 
       $response = $this->request("mutation {
         moduleOperations(input: { 
