@@ -275,7 +275,7 @@ class Modules extends Base {
 	// run as background job	
 	public function initiateGqlAPIProcess($args) {
 		$bin = $this->freepbx->Config()->get('AMPSBIN');
-		shell_exec($bin.'/fwconsole ma gql '.$args[0].' '.$args[1].' '.$args[2].' '.$args[3].' >/dev/null 2>/dev/null &');
+		shell_exec($bin.'/fwconsole api gql '.$args[0].' '.$args[1].' '.$args[2].' '.$args[3].' >/dev/null 2>/dev/null &');
 	}
 
 	public function getOutputFields(){

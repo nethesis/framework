@@ -21,7 +21,6 @@ class Modules extends DB_Helper{
 	private $validLicense = null;
 	private static $functionIncLoaded = [];
 	private $conflictsCache = [];
-	public static $gqlApi = false;
 
 	// Cache for XML objects
 	private $modulexml = array();
@@ -43,20 +42,6 @@ class Modules extends DB_Helper{
 		if(self::$count > 1) {
 			throw new \Exception("The 'Modules' class has loaded more than once! This is a serious error!");
 		}
-	}
-
-	//injecting for utest
-	public function setObj($obj){
-		self::$gqlApi = $obj;
-	}
-
-	public function execGqlApi() 
-	{
-		if(!self::$gqlApi){
-			include_once __DIR__ . '/../ModulesGqlHelper.class.php';
-			self::$gqlApi = \FreePBX::ModulesGqlHelper();
-		}
-		return self::$gqlApi;
 	}
 
 	/**

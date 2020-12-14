@@ -1767,9 +1767,6 @@ class Moduleadmin extends Command {
 				break;
 			case 'updatexml':
 				break;
-			case 'gql':
-				$this->FreePBX->Modules->execGqlApi()->execModuleGqlApi($args);			
-				break;
 			case 'help':
 			case 'h':
 			case '?':

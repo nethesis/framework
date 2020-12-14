@@ -32,7 +32,7 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
 
       $mockGqlHelper->method('processGqlApi')->willReturn(true);
 
-     self::$freepbx->Modules->setObj($mockGqlHelper);  
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
 
       $response = $this->request("mutation {
         moduleOperations(input: { 
@@ -58,7 +58,7 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
 
       $mockGqlHelper->method('processGqlApi')->willReturn(true);
 
-     self::$freepbx->Modules->setObj($mockGqlHelper);  
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
 
       $response = $this->request("mutation {
         moduleOperations(input: { 
@@ -83,7 +83,7 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
 
       $mockGqlHelper->method('processGqlApi')->willReturn(true);
 
-     self::$freepbx->Modules->setObj($mockGqlHelper);  
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
 
       $response = $this->request("mutation {
         moduleOperations(input: { 
