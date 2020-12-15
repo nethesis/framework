@@ -15,7 +15,7 @@ class Modules extends Base {
 						'description' => _('Read module information'),
 				],
 				'write:modules' => [
-						'description' => _('Module upgrade/degrade operations'),
+						'description' => _('Module install/update/uninstall operations'),
 				]
 		];
 	}
@@ -25,7 +25,7 @@ class Modules extends Base {
 				return [				
 				'moduleOperations' => Relay::mutationWithClientMutationId([
 						'name' => 'moduleOperations',
-						'description' => _('Will Perform a module install/uninstall/enable/disable/downloadinstall based on action,module and track'),
+						'description' => _('This will perform a module install/uninstall/enable/disable/downloadinstall based on action,module and track'),
 						'inputFields' => $this->getMutationFieldModule(),
 						'outputFields' =>$this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
@@ -34,7 +34,7 @@ class Modules extends Base {
 					]),
 				'installOrUninstall' => Relay::mutationWithClientMutationId([
 						'name' => 'installUninstall',
-						'description' => _('Will Perform a module install/uninstall based on action,module and track'),
+						'description' => _('This will perform install/uninstall module operation.'),
 						'inputFields' => $this->getMutationFieldModule(),
 						'outputFields' => $this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
@@ -43,7 +43,7 @@ class Modules extends Base {
 					]),
 				'enableOrDisable' => Relay::mutationWithClientMutationId([
 						'name' => 'enable-disable',
-						'description' => _('Will Perform a module enable/disable based on action,module and track'),
+						'description' => _('This will perform Enable/disable module operation.'),
 						'inputFields' => $this->getMutationFieldModule(),
 						'outputFields' => $this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
@@ -52,7 +52,7 @@ class Modules extends Base {
 					]),
 				'deleteOrUpgrade' => Relay::mutationWithClientMutationId([
 						'name' => 'delete-upgrade',
-						'description' => _('Will Perform a module delete/upgrade based on action,module and track'),
+						'description' => _('This will perform delete/upgrade module operation'),
 						'inputFields' => $this->getMutationFieldModule(),
 						'outputFields' => $this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
@@ -68,11 +68,11 @@ class Modules extends Base {
 		return [
 			'module' => [
 				'type' => Type::nonNull(Type::string()),
-				'description' => _('Module name which you want to upgrade/degrade')
+				'description' => _('Module name on which you want to perform any action')
 			],
 			'action' => [
 				'type' => Type::nonNull(Type::string()),
-				'description' => _('Action you want perform on a module [install/uninstall/enable/disable/remove]')
+				'description' => _('Action you want to perform on a module [install/uninstall/enable/disable/remove]')
 			],
 			'track' => [
 				'type' => Type::string(),
@@ -85,7 +85,7 @@ class Modules extends Base {
 		if($this->checkReadScope('modules')) {
 			return function() {
 				return [
-					'allModules' => [
+					'fetchAllModuleStatus' => [
 						'type' => $this->typeContainer->get('module')->getConnectionType(),
 						'description' => $this->description,
 						'args' => array_merge(
@@ -93,7 +93,7 @@ class Modules extends Base {
 							[
 								'status' => [
 									'type' => $this->getEnumStatuses(),
-									'description' => 'The final known disposition of the CDR record',
+									'description' => 'Performed Module operation status',
 									'defaultValue' => false
 								]
 							]
@@ -108,7 +108,7 @@ class Modules extends Base {
 							return Relay::connectionFromArray(array_values($modules), $args);
 						},
 					],
-					'module' => [
+					'fetchModuleStatus' => [
 						'type' => $this->typeContainer->get('module')->getObject(),
 						'description' => $this->description,
 						'args' => [
@@ -133,7 +133,7 @@ class Modules extends Base {
 
 	public function initializeTypes() {
 		$user = $this->typeContainer->create('module');
-		$user->setDescription('Used to manage a system wide list of blocked callers');
+		$user->setDescription('Used to manage module specific operations');
 
 		$user->addInterfaceCallback(function() {
 			return [$this->getNodeDefinition()['nodeInterface']];
@@ -148,51 +148,51 @@ class Modules extends Base {
 			return [
 				'status' => [
 					'type' => Type::string(),
-					'description' => 'Module Status'
+					'description' => _('Module Status')
 				],
 				'rawname' => [
 					'type' => Type::string(),
-					'description' => 'Raw name of the module'
+					'description' => _('Raw name of the module')
 				],
 				'repo' => [
 					'type' => Type::string(),
-					'description' => 'The number to block'
+					'description' => _('The module repository information')
 				],
 				'name' => [
 					'type' => Type::string(),
-					'description' => 'The number to block'
+					'description' => _('The module user friendly name ')
 				],
 				'displayname' => [
 					'type' => Type::string(),
-					'description' => 'The number to block'
+					'description' => _('The module user friendly display name')
 				],
 				'version' => [
 					'type' => Type::string(),
-					'description' => 'The number to block'
+					'description' => _('The module release version ')
 				],
 				'dbversion' => [
 					'type' => Type::string(),
-					'description' => 'The number to block'
+					'description' => _('The module release version ')
 				],
 				'publisher' => [
 					'type' => Type::string(),
-					'description' => 'The number to block'
+					'description' => _('The module publisher name ')
 				],
 				'license' => [
 					'type' => Type::string(),
-					'description' => 'The number to block'
+					'description' => _('The module license type ')
 				],
 				'licenselink' => [
 					'type' => Type::string(),
-					'description' => 'The number to block'
+					'description' => _('The module license information url ')
 				],
 				'changelog' => [
 					'type' => Type::string(),
-					'description' => 'The number to block'
+					'description' => _('The module release changelog ')
 				],
 				'category' => [
 					'type' => Type::string(),
-					'description' => 'The number to block'
+					'description' => _('The module category in FreePBX UI')
 				],
 				'message' =>[
 					'type' =>  $this->getEnumStatuses(),
@@ -237,23 +237,23 @@ class Modules extends Base {
 			'values' => [
 				'notInstalled' => [
 					'value' => 0,
-					'description' => 'The module is not installed'
+					'description' => _('The module is not installed')
 				],
 				'disabled' => [
 					'value' => 1,
-					'description' => "The module is disabled"
+					'description' => _("The module is disabled")
 				],
 				'enabled' => [
 					'value' => 2,
-					'description' => 'The module is enabled'
+					'description' => _('The module is enabled')
 				],
 				'needUpgrade' => [
 					'value' => 3,
-					'description' => "The module needs to be upgraded"
+					'description' => _("The module needs to be upgraded")
 				],
 				'broken' => [
 					'value' => -1,
-					'description' => 'The module is broken'
+					'description' => _('The module is broken')
 				]
 			]
 		]);
@@ -268,8 +268,10 @@ class Modules extends Base {
 		$txnId = $this->freepbx->api->addTransaction("Processing","Framework","gql-run-module-admin");
 
 		$this->freepbx->api->setGqlApiHelper()->initiateGqlAPIProcess(array($module,$action,$track,$txnId));
+
+		$msg = sprintf(_('Action[%s] on module[%s] has been initiated. Please check the status using getApiStatus api with the returned transaction id'),$action, $module);
 		
-		return ['message' => "$action on $module has been initiated. Please check the getApiStatus api with the transaction id.", 'status' => True ,'transaction_id' => $txnId];
+		return ['message' => $msg, 'status' => True ,'transaction_id' => $txnId];
 	}
 
 	public function getOutputFields(){
