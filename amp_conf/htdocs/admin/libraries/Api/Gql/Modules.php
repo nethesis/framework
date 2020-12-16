@@ -125,6 +125,28 @@ class Modules extends Base {
 								return ['message'=> null,'status'=>false];
 							}
 						}
+					],
+					'getApiStatus' => [
+						'type' => $this->typeContainer->get('module')->getObject(),
+						'description' => 'Return the status of the API running Asyncronous',
+						'args' => [
+							'txnId' => [
+								'type' => Type::nonNull(Type::id()),
+								'description' => 'The ID',
+							]
+						],
+						'resolve' => function($root, $args) {
+							try{
+								$status = $this->freepbx->api->getTransactionStatus($args['txnId']);
+								if($status != null){
+									return ['message' => $status, 'status' => true] ;
+								}else{
+									return ['message' => 'Sorry unable to fetch the status', 'status' => true] ;
+								}
+							}catch(Exception $ex){
+								FormattedError::setInternalErrorMessage($ex->getMessage());
+							}		
+						}
 					]
 				];
 			};
@@ -195,7 +217,7 @@ class Modules extends Base {
 					'description' => _('The module category in FreePBX UI')
 				],
 				'message' =>[
-					'type' =>  $this->getEnumStatuses(),
+					'type' => Type::string(),
 					'description' => _('Message for the request')
 				]
 			];
@@ -265,9 +287,11 @@ class Modules extends Base {
 		$action = strtolower($input['action']);
 		$track = (strtoupper(isset($input['track'])) == 'EDGE') ? 'edge' : 'stable';
 
-		$txnId = $this->freepbx->api->addTransaction("Processing","Framework","gql-run-module-admin");
+		$txnId = $this->freepbx->api->addTransaction("Processing","Framework","gql-module-admin");
 
-		$this->freepbx->api->setGqlApiHelper()->initiateGqlAPIProcess(array($module,$action,$track,$txnId));
+		$ret = $this->freepbx->api->setGqlApiHelper()->initiateGqlAPIProcess(array($module,$action,$track,$txnId));
+
+		//TODO to confirm fwconsole api started or not...
 
 		$msg = sprintf(_('Action[%s] on module[%s] has been initiated. Please check the status using getApiStatus api with the returned transaction id'),$action, $module);
 		
