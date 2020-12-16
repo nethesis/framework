@@ -120,7 +120,7 @@ class Modules extends Base {
 						'resolve' => function($root, $args) {
 							$module = $this->freepbx->Modules->getInfo($args['rawname']);
 							if(!empty($module)){
-								return ['message'=> $module['builtin']['status'],'status'=>true];
+								return ['module'=> $module['builtin']['status'],'status'=>true];
 							}else{
 								return ['message'=> null,'status'=>false];
 							}
@@ -218,6 +218,10 @@ class Modules extends Base {
 				],
 				'message' =>[
 					'type' => Type::string(),
+					'description' => _('Message for the request')
+				],
+				'module' =>[
+					'type' => $this->getEnumStatuses(),
 					'description' => _('Message for the request')
 				]
 			];
