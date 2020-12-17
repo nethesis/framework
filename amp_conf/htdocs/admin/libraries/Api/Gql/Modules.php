@@ -29,34 +29,75 @@ class Modules extends Base {
 						'inputFields' => $this->getMutationFieldModule(),
 						'outputFields' =>$this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
-							return $this->moduleAction($input);
+							$module = strtolower($input['module']);
+							$action = strtolower($input['action']);
+							return $this->moduleAction($module,$action);
 						}
 					]),
-				'installOrUninstall' => Relay::mutationWithClientMutationId([
-						'name' => 'installUninstall',
-						'description' => _('This will perform install/uninstall module operation.'),
-						'inputFields' => $this->getMutationFieldModule(),
+				'installModule' => Relay::mutationWithClientMutationId([
+						'name' => 'installModule',
+						'description' => _('This will perform install module operation.'),
+						'inputFields' => $this->getInstallMutationField(),
 						'outputFields' => $this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
-							return $this->moduleAction($input);
+							$module = strtolower($input['module']);
+							if(isset($input['isDownload']) && $input['isDownload'] == true){
+								$action = 'downloadinstall';
+							}else{
+								$action = 'install';
+							}
+							return $this->moduleAction($module,$action);
 						}
 					]),
-				'enableOrDisable' => Relay::mutationWithClientMutationId([
-						'name' => 'enable-disable',
-						'description' => _('This will perform Enable/disable module operation.'),
-						'inputFields' => $this->getMutationFieldModule(),
+				'uninstallModule' => Relay::mutationWithClientMutationId([
+						'name' => 'uninstallModule',
+						'description' => _('This will perform uninstall module operation.'),
+						'inputFields' => $this->getUninstallMutationField(),
 						'outputFields' => $this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
-							return $this->moduleAction($input);
+							$module = strtolower($input['module']);
+							if(isset($input['isRemove']) && $input['isRemove'] == true){
+								$action = 'remove';
+							}else{
+								$action = 'uninstall';
+							}
+							return $this->moduleAction($module,$action);
 						}
 					]),
-				'deleteOrUpgrade' => Relay::mutationWithClientMutationId([
-						'name' => 'delete-upgrade',
-						'description' => _('This will perform delete/upgrade module operation'),
-						'inputFields' => $this->getMutationFieldModule(),
+				'enableModule' => Relay::mutationWithClientMutationId([
+						'name' => 'enableModule',
+						'description' => _('This will perform enable module operation.'),
+						'inputFields' => $this->getEnableDisableMutationField(),
 						'outputFields' => $this->getOutputFields(),
 						'mutateAndGetPayload' => function ($input) {
-							return $this->moduleAction($input);
+							$module = strtolower($input['module']);
+							return $this->moduleAction($module,'enable');
+						}
+					]),
+				'disableModule' => Relay::mutationWithClientMutationId([
+						'name' => 'disableModule',
+						'description' => _('This will perform disable module operation.'),
+						'inputFields' => $this->getEnableDisableMutationField(),
+						'outputFields' => $this->getOutputFields(),
+						'mutateAndGetPayload' => function ($input) {
+							$module = strtolower($input['module']);
+							return $this->moduleAction($module,'disable');
+						}
+					]),
+				'upgradeModule' => Relay::mutationWithClientMutationId([
+						'name' => 'upgradeModule',
+						'description' => _('This will perform upgrade module operation'),
+						'inputFields' => $this->getUpgradeModuleMutationField(),
+						'outputFields' => $this->getOutputFields(),
+						'mutateAndGetPayload' => function ($input) {
+							$module = strtolower($input['module']);
+							if(isset($input['isAll']) && $input['isAll'] == true){
+								$action = 'upgradeall';
+							}else{
+								$action = 'upgrade';
+							}
+
+							return $this->moduleAction($module,$action);
 						}
 					])
 				];
@@ -77,6 +118,62 @@ class Modules extends Base {
 			'track' => [
 				'type' => Type::string(),
 				'description' => _('Track module (edge/stable) ')
+			]
+		];
+	}
+
+	private function getInstallMutationField() {
+		return [
+			'module' => [
+				'type' => Type::nonNull(Type::string()),
+				'description' => _('Module name on which you want to perform  install action on')
+			],
+			'isDownload' => [
+				'type' => Type::boolean(),
+				'description' => _('If you want to download and install')
+			],
+			'track' => [
+				'type' => Type::string(),
+				'description' => _('Track module (edge/stable) ')
+			]
+		];
+	}
+
+	private function getUninstallMutationField() {
+		return [
+			'module' => [
+				'type' => Type::nonNull(Type::string()),
+				'description' => _('Module name on which you want to perform uninstall action on')
+			],
+			'isRemove' => [
+				'type' => Type::boolean(),
+				'description' => _('If you want to remove the module')
+			]
+		];
+	}
+
+	private function getEnableDisableMutationField() {
+		return [
+			'module' => [
+				'type' => Type::nonNull(Type::string()),
+				'description' => _('Module name on which you want to perform action on')
+			],
+			'track' => [
+				'type' => Type::string(),
+				'description' => _('Track module (edge/stable) ')
+			]
+		];
+	}
+
+	private function getUpgradeModuleMutationField() {
+		return [
+			'module' => [
+				'type' => Type::string(),
+				'description' => _('Module name on which you want to perform upgrade')
+			],
+			'isAll' => [
+				'type' =>  Type::boolean(),
+				'description' => _('To upgrade all modules')
 			]
 		];
 	}
@@ -126,7 +223,7 @@ class Modules extends Base {
 							}
 						}
 					],
-					'getApiStatus' => [
+					'fetchApiStatus' => [
 						'type' => $this->typeContainer->get('module')->getObject(),
 						'description' => 'Return the status of the API running Asyncronous',
 						'args' => [
@@ -154,19 +251,19 @@ class Modules extends Base {
 	}
 
 	public function initializeTypes() {
-		$user = $this->typeContainer->create('module');
-		$user->setDescription('Used to manage module specific operations');
+		$module = $this->typeContainer->create('module');
+		$module->setDescription('Used to manage module specific operations');
 
-		$user->addInterfaceCallback(function() {
+		$module->addInterfaceCallback(function() {
 			return [$this->getNodeDefinition()['nodeInterface']];
 		});
 
-		$user->setGetNodeCallback(function($id) {
+		$module->setGetNodeCallback(function($id) {
 			$module = $this->freepbx->Modules->getInfo($id);
 			return !empty($module[$id]) ? $module[$id] : null;
 		});
 
-		$user->addFieldCallback(function() {
+		$module->addFieldCallback(function() {
 			return [
 				'status' => [
 					'type' => Type::string(),
@@ -227,11 +324,11 @@ class Modules extends Base {
 			];
 		});
 
-		$user->setConnectionResolveNode(function ($edge) {
+		$module->setConnectionResolveNode(function ($edge) {
 			return $edge['node'];
 		});
 
-		$user->setConnectionFields(function() {
+		$module->setConnectionFields(function() {
 			return [
 				'totalCount' => [
 					'type' => Type::int(),
@@ -286,19 +383,14 @@ class Modules extends Base {
 		return $this->moduleStatuses;
 	}
 
-	public function moduleAction($input){
-		$module = strtolower($input['module']);
-		$action = strtolower($input['action']);
+	public function moduleAction($module,$action){
 		$track = (strtoupper(isset($input['track'])) == 'EDGE') ? 'edge' : 'stable';
-
 		$txnId = $this->freepbx->api->addTransaction("Processing","Framework","gql-module-admin");
-
 		$ret = $this->freepbx->api->setGqlApiHelper()->initiateGqlAPIProcess(array($module,$action,$track,$txnId));
 
 		//TODO to confirm fwconsole api started or not...
 
-		$msg = sprintf(_('Action[%s] on module[%s] has been initiated. Please check the status using getApiStatus api with the returned transaction id'),$action, $module);
-		
+		$msg = sprintf(_('Action[%s] on module[%s] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id'),$action, $module);
 		return ['message' => $msg, 'status' => True ,'transaction_id' => $txnId];
 	}
 

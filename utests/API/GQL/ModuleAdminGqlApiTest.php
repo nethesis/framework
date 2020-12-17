@@ -44,7 +44,7 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
 
 		  $json = (string)$response->getBody();
 
-	  	$this->assertEquals('{"data":{"moduleOperations":{"status":"true","message":"'.$action.' on '.$module.' has been initiated. Please check the getApiStatus api with the transaction id."}}}', $json);
+	  	$this->assertEquals('{"data":{"moduleOperations":{"status":"true","message":"Action['.$action.'] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
     }
 
     public function testModuleOperationswhenActionParamNotSentWillReturnErrors()
@@ -96,13 +96,13 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
 
 	  	$this->assertEquals('{"errors":[{"message":"Field moduleOperationsInput.module of required type String! was not provided.","status":false}]}', $json);
     }
-    public function testModuleStatusWillReturnStatus()
+    public function testModuleWithRawnameWillReturnModuleStatus()
     {
       $rawname = "module:core";
 
       $response = $this->request("query{
-        module (rawname:\"{$rawname}\"){
-          message status
+        fetchModuleStatus (rawname:\"{$rawname}\"){
+          module status
         }
       }");
 
@@ -112,10 +112,292 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
 
 			if(!empty($module)){
         $res = $module['builtin']['status'] == 2 ? 'enabled' : 'disabled';
-				$actual =  ['message'=> $res,'status'=>"true"];
+				$actual =  ['module'=> $res,'status'=>"true"];
 			}else{
 				$actual = ['message'=> null,'status'=>"false"];
       }        
-	  	$this->assertEquals('{"data":{"module":'.json_encode($actual).'}}', $json);
+	  	$this->assertEquals('{"data":{"fetchModuleStatus":'.json_encode($actual).'}}', $json);
+    }
+
+    public function testInstallModuleShoudReturnTrue(){
+      
+      $module = 'xmpp';
+
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        installModule(input: { 
+          module: \"{$module}\" }) 
+          { status message }
+        }
+      ");
+
+		  $json = (string)$response->getBody();
+
+	  	$this->assertEquals('{"data":{"installModule":{"status":"true","message":"Action[install] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
+    }
+
+    public function testInstallModuleWithDownloadShoudReturnTrue(){
+      
+      $module = 'xmpp';
+
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        installModule(input: { 
+          module: \"{$module}\"
+          isDownload:true}) 
+          { status message }
+        }
+      ");
+
+		  $json = (string)$response->getBody();
+
+	  	$this->assertEquals('{"data":{"installModule":{"status":"true","message":"Action[downloadinstall] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
+    }
+
+    public function testInstallModuleWithDownloadSetFalseShoudReturnTrueWithOnlyInstall(){
+      
+      $module = 'xmpp';
+
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        installModule(input: { 
+          module: \"{$module}\"
+          isDownload:false}) 
+          { status message }
+        }
+      ");
+
+		  $json = (string)$response->getBody();
+
+	  	$this->assertEquals('{"data":{"installModule":{"status":"true","message":"Action[install] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
+    }
+
+    public function testUninstallModuleShoudReturnTrue(){
+      
+      $module = 'xmpp';
+
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        uninstallModule(input: { 
+          module: \"{$module}\" }) 
+          { status message }
+        }
+      ");
+
+		  $json = (string)$response->getBody();
+
+	  	$this->assertEquals('{"data":{"uninstallModule":{"status":"true","message":"Action[uninstall] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
+    }
+
+    public function testUninstallModuleWithRemoveSetToTrueShoudReturnTrue(){
+      
+      $module = 'xmpp';
+
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        uninstallModule(input: { 
+          module: \"{$module}\"
+          isRemove:true}) 
+          { status message }
+        }
+      ");
+
+		  $json = (string)$response->getBody();
+
+	  	$this->assertEquals('{"data":{"uninstallModule":{"status":"true","message":"Action[remove] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
+    }
+
+    public function testUninstallModuleWithRemoveSetToFalseShoudReturnTrue(){
+      
+      $module = 'xmpp';
+
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        uninstallModule(input: { 
+          module: \"{$module}\"
+          isRemove:false}) 
+          { status message }
+        }
+      ");
+
+		  $json = (string)$response->getBody();
+
+	  	$this->assertEquals('{"data":{"uninstallModule":{"status":"true","message":"Action[uninstall] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
+    }
+
+    public function testEnableModuleShoudReturnTrue(){
+      
+      $module = 'xmpp';
+
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        enableModule(input: { 
+          module: \"{$module}\" }) 
+          { status message }
+        }
+      ");
+
+		  $json = (string)$response->getBody();
+
+	  	$this->assertEquals('{"data":{"enableModule":{"status":"true","message":"Action[enable] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
+    }
+
+     public function testDisableModuleShoudReturnTrue(){
+      
+      $module = 'xmpp';
+
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        disableModule(input: { 
+          module: \"{$module}\" }) 
+          { status message }
+        }
+      ");
+
+		  $json = (string)$response->getBody();
+
+	  	$this->assertEquals('{"data":{"disableModule":{"status":"true","message":"Action[disable] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
+    }
+
+    
+    public function testUgradeModuleShoudReturnTrue(){
+      
+      $module = 'xmpp';
+
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        upgradeModule(input: { 
+          module: \"{$module}\" }) 
+          { status message }
+        }
+      ");
+
+		  $json = (string)$response->getBody();
+
+	  	$this->assertEquals('{"data":{"upgradeModule":{"status":"true","message":"Action[upgrade] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
+    }
+
+    public function testUpgradeModuleWithIsAllSetToTrueShoudReturnTrue(){
+      
+      $module = 'xmpp';
+
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        upgradeModule(input: { 
+          module: \"{$module}\"
+          isAll:true}) 
+          { status message }
+        }
+      ");
+
+		  $json = (string)$response->getBody();
+
+	  	$this->assertEquals('{"data":{"upgradeModule":{"status":"true","message":"Action[upgradeall] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
+    }
+
+    public function testUpgradeModuleModuleWithIsAllSetToFalseShoudReturnTrue(){
+      
+      $module = 'xmpp';
+
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+     self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        upgradeModule(input: { 
+          module: \"{$module}\"
+          isAll:false}) 
+          { status message }
+        }
+      ");
+
+		  $json = (string)$response->getBody();
+
+	  	$this->assertEquals('{"data":{"upgradeModule":{"status":"true","message":"Action[upgrade] on module['.$module.'] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id"}}}', $json);
     }
 }
