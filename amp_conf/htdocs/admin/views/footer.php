@@ -17,7 +17,9 @@ if ($amp_conf['FORCE_JS_CSS_IMG_DOWNLOAD']) {
 $html = '';
 
 $html .= '</div>';//page_body
+$html .= '</div>'; 
 $html .= '</div>'; //page
+
 $html .= '<div id="footer">';
 // If displaying footer content, force the <hr /> tag to enforce clear separation of page vs. footer
 if ($footer_content) {
