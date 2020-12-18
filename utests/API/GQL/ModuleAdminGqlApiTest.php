@@ -96,28 +96,6 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
 
 	  	$this->assertEquals('{"errors":[{"message":"Field moduleOperationsInput.module of required type String! was not provided.","status":false}]}', $json);
     }
-    public function testModuleWithRawnameWillReturnModuleStatus()
-    {
-      $rawname = "module:core";
-
-      $response = $this->request("query{
-        fetchModuleStatus (rawname:\"{$rawname}\"){
-          module status
-        }
-      }");
-
-		  $json = (string)$response->getBody();
-
-      $module = self::$freepbx->Modules->getInfo($rawname);
-
-			if(!empty($module)){
-        $res = $module['builtin']['status'] == 2 ? 'enabled' : 'disabled';
-				$actual =  ['module'=> $res,'status'=>"true"];
-			}else{
-				$actual = ['message'=> null,'status'=>"false"];
-      }        
-	  	$this->assertEquals('{"data":{"fetchModuleStatus":'.json_encode($actual).'}}', $json);
-    }
 
     public function testInstallModuleShoudReturnTrue(){
       

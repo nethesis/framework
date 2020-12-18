@@ -205,7 +205,7 @@ class Modules extends Base {
 							return Relay::connectionFromArray(array_values($modules), $args);
 						},
 					],
-					'fetchModuleStatus' => [
+					'fetchModuleStatus' => [ //unit test could not be performed without jeopardizing, given the current freepbx status
 						'type' => $this->typeContainer->get('module')->getObject(),
 						'description' => $this->description,
 						'args' => [
@@ -387,8 +387,6 @@ class Modules extends Base {
 		$track = (strtoupper(isset($input['track'])) == 'EDGE') ? 'edge' : 'stable';
 		$txnId = $this->freepbx->api->addTransaction("Processing","Framework","gql-module-admin");
 		$ret = $this->freepbx->api->setGqlApiHelper()->initiateGqlAPIProcess(array($module,$action,$track,$txnId));
-
-		//TODO to confirm fwconsole api started or not...
 
 		$msg = sprintf(_('Action[%s] on module[%s] has been initiated. Please check the status using fetchApiStatus api with the returned transaction id'),$action, $module);
 		return ['message' => $msg, 'status' => True ,'transaction_id' => $txnId];
