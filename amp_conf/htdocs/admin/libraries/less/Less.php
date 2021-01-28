@@ -4241,9 +4241,6 @@ class Less_VisitorReplacing extends Less_Visitor{
 
 }
 
-
-
-
 /**
  * Configurable
  *
@@ -4309,7 +4306,6 @@ abstract class Less_Configurable {
 	public function setOption($name, $value){
 		$this->options[$name] = $value;
 	}
-
 }
 
 /**
