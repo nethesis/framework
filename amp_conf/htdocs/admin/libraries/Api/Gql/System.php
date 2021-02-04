@@ -39,6 +39,15 @@ class System extends Base {
 					'mutateAndGetPayload' => function ($input) {
 						return $this->addInitialSetup($input);
 					}
+				]),
+				'updateSystemRPM' => Relay::mutationWithClientMutationId([
+					'name' => 'updateSystemRPM',
+					'description' => _('Update system RPM package'),
+					'inputFields' => [],
+					'outputFields' => $this->getOutputFields(),
+					'mutateAndGetPayload' => function () {
+						return $this->yumUpgrade();
+					}
 				])
 				];
 			};
@@ -212,7 +221,23 @@ class System extends Base {
 			'status' =>[
 				'type' => Type::boolean(),
 				'description' => _('Status for the request')
+			],
+			'transaction_id' => [
+				'type' => Type::string(),
+				'description' => _('Transaction Id for status check')
 			]
 		];
+	}
+	
+	/**
+	 * yumUpgrade
+	 *
+	 * @return void
+	 */
+	public function yumUpgrade(){
+		$txnId = $this->freepbx->api->addTransaction("Processing","Framework","yum-upgrade");
+		$this->freepbx->api->setGqlApiHelper()->initiateGqlAPIProcess(array("yumupgrade",$txnId,'',''));
+		$msg = _('Yum Upgrade has been initiated. Please check the status using fetchApiStatus api with the returned transaction id');
+		return ['message' => $msg, 'status' => True ,'transaction_id' => $txnId];
 	}
 }

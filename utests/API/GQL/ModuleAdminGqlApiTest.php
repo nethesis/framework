@@ -402,4 +402,37 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
     
       $this->assertEquals(200, $response->getStatusCode());
     }
+        
+    /**
+     * testYumUpgradeAllTrueShoudReturnTrue
+     *
+     * @return void
+     */
+    public function testYumUpgradeAllTrueShoudReturnTrue(){
+      $mockGqlHelper = $this->getMockBuilder(Freepbx\api\Api::class)
+       ->disableOriginalConstructor()
+       ->setMethods(array('initiateGqlAPIProcess'))
+       ->getMock();
+
+      $mockGqlHelper->method('initiateGqlAPIProcess')->willReturn(true);
+
+      self::$freepbx->Api()->setObj($mockGqlHelper);  
+
+      $response = $this->request("mutation {
+        updateSystemRPM(input: {}){
+        message
+        status
+        transaction_id   
+        }
+      }");
+
+    $json = (string)$response->getBody();
+    $data = json_decode($json)->data;
+    $data = $data->updateSystemRPM;
+
+    $this->assertNotEmpty($data->transaction_id);
+    $this->assertEquals(true,$data->status);
+    $this->assertEquals("Yum Upgrade has been initiated. Please check the status using fetchApiStatus api with the returned transaction id",$data->message);
+    $this->assertEquals(200, $response->getStatusCode());
+  }
 }
