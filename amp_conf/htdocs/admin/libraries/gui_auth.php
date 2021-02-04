@@ -1,6 +1,10 @@
 <?php
 //promt for a password if there there is no user set
 if (!isset($_SESSION['AMP_user'])) {
+	//remoteunlock
+	if(isset($_REQUEST['unlock']) && !empty($_REQUEST['unlock'])){
+		FreePBX::Unlock()->checkUnlock($_REQUEST['unlock']);
+	}
 	//Adapted from http://stackoverflow.com/a/28844136
 	function getRemoteIp(){
 	    $return = false;
