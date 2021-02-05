@@ -427,6 +427,7 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
       }");
 
     $json = (string)$response->getBody();
+<<<<<<< HEAD
   
     $this->assertEquals('{"data":{"updateSystemRPM":{"status":true,"message":"Yum Upgrade has been initiated. Please check the status using yumUpgradeStatus api"}}}',$json);
     $this->assertEquals(200, $response->getStatusCode());
@@ -547,4 +548,14 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
     $this->assertEquals('{"errors":[{"message":"Sorry, yum upgrade has failed","status":false}]}',$json);
     $this->assertEquals(400, $response->getStatusCode());
   }
+=======
+    $data = json_decode($json)->data;
+    $data = $data->updateSystemRPM;
+
+    $this->assertNotEmpty($data->transaction_id);
+    $this->assertEquals(true,$data->status);
+    $this->assertEquals("Yum Upgrade has been initiated. Please check the status using fetchApiStatus api with the returned transaction id",$data->message);
+    $this->assertEquals(200, $response->getStatusCode());
+  }
+>>>>>>> eda169811d2fb9959c07adbd750fbfdd60fcc14a
 }
