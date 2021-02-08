@@ -64,6 +64,9 @@ class SystemAdminGqlApiTest extends ApiBaseTestCase {
      */
     public function testaddInitialSetupWhenDuplicateEntriesShouldReturnfalse(){
 
+      $sth = $db->prepare("DELETE FROM `ampusers` where username like ?");
+		  $sql->execute(array("%test%"));
+
       $response = $this->request("mutation {
         addInitialSetup(input: { 
          username: \"test\" 
@@ -86,13 +89,21 @@ class SystemAdminGqlApiTest extends ApiBaseTestCase {
       
       $this->assertEquals(400, $response->getStatusCode());
     }
-
+   
+   /**
+    * testaddInitialSetAllGoodShouldReturnfalse
+    *
+    * @return void
+    */
    public function testaddInitialSetAllGoodShouldReturnfalse(){
+
+      $sth = $db->prepare("DELETE FROM `ampusers` where username like ?");
+		  $sql->execute(array("%test%"));
 
       $response = $this->request("mutation {
         addInitialSetup(input: { 
-         username: \"testuser\" 
-         password: \"testuser\" 
+         username: \"test\" 
+         password: \"test\" 
          notificationEmail: \"test@gmail.com\"
          systemIdentifier: \"VOIP Server\"
          autoModuleUpdate: \"enabled\"
@@ -110,5 +121,9 @@ class SystemAdminGqlApiTest extends ApiBaseTestCase {
       $this->assertEquals('{"data":{"addInitialSetup":{"status":true,"message":"Initial Setup is completed"}}}', $json);
       
       $this->assertEquals(200, $response->getStatusCode());
+
+    $sth = $db->prepare("DELETE FROM `ampusers` where username like ?");
+		$sql->execute(array("%test%"));
+      
    }
 }
