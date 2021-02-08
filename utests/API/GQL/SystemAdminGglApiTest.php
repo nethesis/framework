@@ -63,14 +63,18 @@ class SystemAdminGqlApiTest extends ApiBaseTestCase {
      * @return void
      */
     public function testaddInitialSetupWhenDuplicateEntriesShouldReturnfalse(){
-
-      $sth = $db->prepare("DELETE FROM `ampusers` where username like ?");
+      $db = self::$freepbx->Database();
+      $sql = $db->prepare("DELETE FROM `ampusers` where username like ?");
 		  $sql->execute(array("%test%"));
+      $pass = rand();
+
+      $sql = $db->prepare("INSERT INTO `ampusers` (`username`, `password_sha1`, `sections`) VALUES ( ?, ?, '*')");
+	  	$sql->execute(array("test", $pass));
 
       $response = $this->request("mutation {
         addInitialSetup(input: { 
          username: \"test\" 
-         password: \"test\" 
+         password: \"{$pass}\" 
          notificationEmail: \"test@gmail.com\"
          systemIdentifier: \"VOIP Server\"
          autoModuleUpdate: \"enabled\"
@@ -96,14 +100,15 @@ class SystemAdminGqlApiTest extends ApiBaseTestCase {
     * @return void
     */
    public function testaddInitialSetAllGoodShouldReturnfalse(){
-
-      $sth = $db->prepare("DELETE FROM `ampusers` where username like ?");
+      $db = self::$freepbx->Database();
+      $sql = $db->prepare("DELETE FROM `ampusers` where username like ?");
 		  $sql->execute(array("%test%"));
+      $pass = rand();
 
       $response = $this->request("mutation {
         addInitialSetup(input: { 
          username: \"test\" 
-         password: \"test\" 
+         password: \"{$pass}\" 
          notificationEmail: \"test@gmail.com\"
          systemIdentifier: \"VOIP Server\"
          autoModuleUpdate: \"enabled\"
