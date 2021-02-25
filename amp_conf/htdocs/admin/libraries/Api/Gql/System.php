@@ -76,6 +76,20 @@ class System extends Base {
 						'resolve' => function() {
 							return $this->yumUpgradeStatus();
 						}
+					],
+					'fetchAsteriskStatus' => [
+						'type' => $this->typeContainer->get('system')->getObject(),
+						'description' => _('Fetch system status for asterisk'),
+						'resolve' => function() {
+							return $this->asteriskStatus();
+						}
+					],
+					'fetchDBStatus' => [
+						'type' => $this->typeContainer->get('system')->getObject(),
+						'description' => _('Fetch system status for DB'),
+						'resolve' => function() {
+							return $this->dbStatus();
+						}
 					]
 				];
 			};
@@ -168,6 +182,22 @@ class System extends Base {
 					'type' => Type::boolean(),
 					'description' => _('Status for the request')
 				],
+				'asteriskStatus' =>[
+					'type' => Type::string(),
+					'description' => _('Message for the request')
+				],
+				'asteriskVersion' =>[
+					'type' => Type::string(),
+					'description' => _('Status for the request')
+				],
+				'apiStatus' =>[
+					'type' => Type::string(),
+					'description' => _('Message for the request')
+				],
+				'dbStatus' =>[
+					'type' => Type::string(),
+					'description' => _('Status for the request')
+				]
 			];
 		});
 	}
@@ -295,5 +325,48 @@ class System extends Base {
 		$settings['update_every'] = $settings['updateDay'];
 		$settings['update_period'] = $settings['updatePeriod'];
 		return $settings;
+	}
+
+	private function asteriskStatus(){
+		$asterisk_version = engine_getinfo();
+		if($asterisk_version){
+			$asterisk_version = $asterisk_version['version'];
+		}else{
+			$asterisk_version = "";
+		}
+		if(file_exists('/var/run/asterisk/asterisk.ctl')){
+			$asterisk_status = _("Running");
+		}else{
+			$asterisk_status = _("Not running");
+		}
+		$ami_ari = $this->freepbx->astman->connected();
+		if($ami_ari){
+			$ami_ari = _("Connected");
+		}else{
+			$ami_ari = _("Not Connected");
+		}
+		return ['message' => _('ASterisk Status'), 'status' => true , 'asteriskStatus' => $asterisk_status, 'asteriskVersion' => $asterisk_version ,'apiStatus' => $ami_ari];
+	}
+
+	private function dbStatus(){
+		if(DB_OK){
+			$db_status = _('Connected');
+		}else{
+			$db_status = _('Not Connected');
+		}
+		return ['message' => _('Database Status'), 'status' => true , 'dbStatus' => $db_status];
+	}
+
+
+	private function yumPackageStatus(){
+		$res = $this->freepbx->Framework->getSystemObj()->getYumUpdateStatus();
+		
+		if($res['status'] == "complete"){
+			return ['message' => _('Yum upgrade is completed'), 'status' => true];
+		}elseif($res['status'] == "inprogress"){
+			return ['message' => _('Yum upgrade is in progress'), 'status' => true];
+		}else{
+			return ['message' => _('Sorry, yum upgrade has failed'), 'status' => false];
+		}
 	}
 }
