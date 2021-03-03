@@ -469,11 +469,7 @@ class System extends Base {
 	 */
 	private function guiMode(){
 		$res = $this->freepbx->Framework->getMonitoringObj()->GUIMode($this->freepbx);
-		if($res){
-			return ['message' => _('GUI Mode details'), 'status' => true , 'guiMode' => $res];
-		}else{
-		   return ['message' => _('Sorry, GUI mode details not avaliable'), 'status' => false];
-		}
+		return ['message' => _('GUI Mode details'), 'status' => true , 'guiMode' => $res];
 	}
 	
 	/**

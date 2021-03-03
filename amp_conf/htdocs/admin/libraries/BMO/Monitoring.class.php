@@ -102,11 +102,7 @@ class Monitoring {
 	 * @return void
 	 */
 	public function GUIMode($freepbx){
-		$guiMode = $freepbx->Config()->get('FPBXOPMODE');
-		if($guiMode){
-			return true;
-		}
-		return false;
+		return $freepbx->Config()->get('FPBXOPMODE');
 	}
 	
 	/**

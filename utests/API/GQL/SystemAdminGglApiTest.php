@@ -215,13 +215,13 @@ class SystemAdminGqlApiTest extends ApiBaseTestCase {
     *
     * @return void
     */
-   public function test_fetchGUIMode_when_all_good_should_return_true(){
+   public function test_fetchGUIMode_when_advanced_should_return_advanced(){
      $default = $this->getMockBuilder(\FreePBX\modules\framework\Monitoring::class)
      ->disableOriginalConstructor()
 			->setMethods(array('GUIMode'))
       ->getMock();  
 
-    $default->method('GUIMode')->willReturn(true);
+    $default->method('GUIMode')->willReturn('advanced');
     self::$freepbx->Framework->setMonitoringObj($default);
 
     $response = $this->request("query{
@@ -233,7 +233,7 @@ class SystemAdminGqlApiTest extends ApiBaseTestCase {
     }");
       
     $json = (string)$response->getBody();
-    $this->assertEquals('{"data":{"fetchGUIMode":{"status":true,"message":"GUI Mode details","guiMode":"true"}}}',$json);
+    $this->assertEquals('{"data":{"fetchGUIMode":{"status":true,"message":"GUI Mode details","guiMode":"advanced"}}}',$json);
     $this->assertEquals(200, $response->getStatusCode());
    }
    
@@ -242,13 +242,13 @@ class SystemAdminGqlApiTest extends ApiBaseTestCase {
     *
     * @return void
     */
-   public function test_fetchGUIMode_when_return_false_should_return_false(){
+   public function test_fetchGUIMode_when_basic_false_should_return_basic(){
      $default = $this->getMockBuilder(\FreePBX\modules\framework\Monitoring::class)
      ->disableOriginalConstructor()
 			->setMethods(array('GUIMode'))
       ->getMock();  
 
-    $default->method('GUIMode')->willReturn(false);
+    $default->method('GUIMode')->willReturn('basic');
     self::$freepbx->Framework->setMonitoringObj($default);
 
     $response = $this->request("query{
@@ -260,8 +260,8 @@ class SystemAdminGqlApiTest extends ApiBaseTestCase {
     }");
       
     $json = (string)$response->getBody();
-    $this->assertEquals('{"errors":[{"message":"Sorry, GUI mode details not avaliable","status":false}]}',$json);
-    $this->assertEquals(400, $response->getStatusCode());
+    $this->assertEquals('{"data":{"fetchGUIMode":{"status":true,"message":"GUI Mode details","guiMode":"basic"}}}',$json);
+    $this->assertEquals(200, $response->getStatusCode());
    }
   
   /**
