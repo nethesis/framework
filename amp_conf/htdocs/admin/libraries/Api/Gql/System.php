@@ -245,43 +245,43 @@ class System extends Base {
 			];
 		});
 
-		$system = $this->typeContainer->create('updatestatus');
-		$system->addInterfaceCallback(function() {
-			return [$this->getNodeDefinition()['nodeInterface']];
-		});
+	$system = $this->typeContainer->create('updatestatus');
+	$system->addInterfaceCallback(function() {
+		return [$this->getNodeDefinition()['nodeInterface']];
+	});
 
 	$system->addFieldCallBack(function(){
 		return[
 			'id' => Relay::globalIdField('updatestatus', function($row) {
-				if(isset($row)){
-					return $row['id'];
-				}else{
-					return null;
-				}
-			}),
-			'modules' =>[
-			'type' => Type::string(),
-			'description' => _('Status of automatic updates'),
-			'resolve' => function($row) {
-				if(isset($row)){
-					return $row['val'];
-				}else{
-					return null;
-				}
+			if(isset($row)){
+				return $row['id'];
+			}else{
+				return null;
 			}
-			],];
-		});
+		}),
+		'modules' =>[
+		'type' => Type::string(),
+		'description' => _('Status of automatic updates'),
+		'resolve' => function($row) {
+		if(isset($row)){
+			return $row['val'];
+		}else{
+			return null;
+		}
+		}
+		],];
+	});
 
 	$system->setConnectionFields(function() {
 		return [
 			'autoupdates' => [
-				'type' =>  Type::listOf($this->typeContainer->get('updatestatus')->getObject()),
-				'description' => _('status of automatic updates'),
-				'resolve' => function($root, $args) {
-					$data = array_map(function($row){
-						return $row;
-					},$root['response']);
-						return $data;
+			'type' =>  Type::listOf($this->typeContainer->get('updatestatus')->getObject()),
+			'description' => _('status of automatic updates'),
+			'resolve' => function($root, $args) {
+				$data = array_map(function($row){
+					return $row;
+				},$root['response']);
+					return $data;
 				}
 			],
 			'message' =>[
@@ -424,18 +424,21 @@ class System extends Base {
 	 * @return void
 	 */
 	private function asteriskDetails(){
-		$asterisk_version = engine_getinfo();
+		$asterisk_version = $this->freepbx->Framework->getMonitoringObj()->asteriskInfo();
 		if($asterisk_version){
 			$asterisk_version = $asterisk_version['version'];
 		}else{
 			$asterisk_version = "";
 		}
-		if(file_exists('/var/run/asterisk/asterisk.ctl')){
+
+		$asteriskRunning = $this->freepbx->Framework->getMonitoringObj()->asteriskRunning();
+		if($asteriskRunning){
 			$asterisk_status = _("Running");
 		}else{
 			$asterisk_status = _("Not running");
 		}
-		$ami_ari = $this->freepbx->astman->connected();
+		
+		$ami_ari = $this->freepbx->Framework->getMonitoringObj()->astmanInfo($this->freepbx);
 		if($ami_ari){
 			$ami_ari = _("Connected");
 		}else{
@@ -450,7 +453,8 @@ class System extends Base {
 	 * @return void
 	 */
 	private function dbStatus(){
-		if(DB_OK){
+		$db = $this->freepbx->Framework->getMonitoringObj()->dbStatus();
+		if($db){
 			$db_status = _('Connected');
 		}else{
 			$db_status = _('Not Connected');
@@ -464,9 +468,9 @@ class System extends Base {
 	 * @return void
 	 */
 	private function guiMode(){
-		$res = $this->freepbx->Config()->get('FPBXOPMODE');
+		$res = $this->freepbx->Framework->getMonitoringObj()->GUIMode($this->freepbx);
 		if($res){
-			return ['message' => _('GUI Mode'), 'status' => true , 'guiMode' => $res];
+			return ['message' => _('GUI Mode details'), 'status' => true , 'guiMode' => $res];
 		}else{
 		   return ['message' => _('Sorry, GUI mode details not avaliable'), 'status' => false];
 		}
@@ -478,9 +482,7 @@ class System extends Base {
 	 * @return void
 	 */
 	private function setupWizardStatus(){
-		$sql = $this->freepbx->database->prepare("SELECT val FROM `kvstore_OOBE` where `key` like ?");
-		$sql->execute(array('completed'));
-		$res = $sql->fetchAll(\PDO::FETCH_ASSOC);
+		$res = $this->freepbx->Framework->getMonitoringObj()->setupWizardDetails($this->freepbx);
 		if(!empty($res)){
 			return ['message' => _('List up moduels setup wizard is run for'), 'status' => true , 'response' => $res];
 		}else{
@@ -494,11 +496,10 @@ class System extends Base {
 	 * @return void
 	 */
 	private function autoUpdateSetting(){
-		$um = new \FreePBX\Builtin\UpdateManager();
-		$row = $um->getCurrentUpdateSettings();
+		$row = $this->freepbx->Framework->getMonitoringObj()->autoUpdateDetails();
 		if(!empty($row)){
-			return ['message' => _('List of automatic update status'), 'status' => true , 'systemUpdates' =>  $row['auto_system_updates'], 'moduleUpdates' =>  $row['auto_module_updates'] , 'moduleSecurityUpdates' => $row['auto_module_security_updates']];
+			return ['message' => _('Automatic update status'), 'status' => true , 'systemUpdates' =>  $row['auto_system_updates'], 'moduleUpdates' =>  $row['auto_module_updates'] , 'moduleSecurityUpdates' => $row['auto_module_security_updates']];
 		}
-		return ['message' => _('Sorry, Could not find any update status'), 'status' => false];
+		return ['message' => _('Sorry, Could not find automatic update status'), 'status' => false];
 	}
 }
