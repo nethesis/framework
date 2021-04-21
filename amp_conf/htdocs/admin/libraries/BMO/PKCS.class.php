@@ -36,6 +36,7 @@ class PKCS {
 
 	private static $certmanObj = false;
 	private static $filestoreObj = false;
+	private static $pm2Obj = false;
 	
 	//TODO first element that comes in here is the freepbx object yikes
 	public function __construct($debug=0) {
@@ -775,5 +776,31 @@ default_md = sha256
 	 */
 	public function setFileStoreObj($obj){
 		return self::$filestoreObj = $obj; 
+	}
+	
+	/**
+	 * getpm2Obj
+	 *
+	 * @param  mixed $freepbx
+	 * @return void
+	 */
+	public function getpm2Obj($freepbx) {
+		if (!self::$pm2Obj) {
+			if (!class_exists('FreePBX\\modules\\pm2')) {
+				include_once $freepbx->Config->get_conf_setting('AMPWEBROOT')."/admin/modules/pm2/Pm2.class.php";
+			}
+			self::$pm2Obj = new \FreePBX\modules\Pm2($freepbx);
+		}
+		return self::$pm2Obj;
+	}
+			
+	/**
+	 * setpm2Obj
+	 *
+	 * @param  mixed $obj
+	 * @return void
+	 */
+	public function setpm2Obj($obj){
+		return self::$pm2Obj = $obj; 
 	}
 }
