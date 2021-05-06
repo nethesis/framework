@@ -30,6 +30,7 @@ class Framework extends FreePBX_Helpers implements BMO {
 			case 'scheduler':
 			case 'sysupdate':
 			case 'reload':
+			case 'navbarToogle':
 			return true;
 		}
 		return false;
@@ -48,6 +49,25 @@ class Framework extends FreePBX_Helpers implements BMO {
 		case 'reload':
 			\FreePBX::Modules()->loadFunctionsInc('framework');
 			return do_reload();
+		case 'navbarToogle':
+			$current = \FreePBX::Framework()->getConfig("navbarToogle");
+			if(empty($current)){
+				\FreePBX::Framework()->setConfig("navbarToogle", "no");
+				$current = \FreePBX::Framework()->getConfig("navbarToogle");
+			}
+			if(!empty($_REQUEST["click"]) && $_REQUEST["click"] == true){
+				switch($current){
+					case "yes":
+						\FreePBX::Framework()->setConfig("navbarToogle", "no");
+						$current = "no";
+						break;
+					case "no":
+						\FreePBX::Framework()->setConfig("navbarToogle", "yes");
+						$current = "yes";
+						break;
+				}
+			}			
+			return $current;
 		}
 		return false;
 	}
