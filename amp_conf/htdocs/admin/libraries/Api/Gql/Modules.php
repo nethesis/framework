@@ -260,6 +260,16 @@ class Modules extends Base {
 								return ['message' => _('Doreload is not required'), 'status' => true] ;
 							}
 						}
+					],
+					'restartAsterisk' => [
+						'type' => $this->typeContainer->get('module')->getObject(),
+						'description' => _('Executes fwconsole restart command'),
+						'resolve' => function ($root, $args) {
+							$txnId = $this->freepbx->api->addTransaction("Processing", "framework", "fwconsole-commands");
+							\FreePBX::Sysadmin()->ApiHooks()->runModuleSystemHook('api', 'fwconsole-commands', array('restart', $txnId));
+							$msg = _('Restart has been initiated. Please check the status using fetchApiStatus api with the returned transaction id');
+							return ['message' => $msg, 'status' => True, 'transaction_id' => $txnId];
+						}
 					]
 				];
 			};
@@ -339,6 +349,12 @@ class Modules extends Base {
 				'module' =>[
 					'type' => $this->getEnumStatuses(),
 					'description' => _('Message for the request')
+				],
+				'transaction_id' => [
+					'type' => Type::string(),
+					'resolve' => function ($payload) {
+						return $payload['transaction_id'];
+					}
 				]
 			];
 		});
