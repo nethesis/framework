@@ -476,14 +476,6 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
     $mockHelper->method('runModuleSystemHook')
     ->willReturn(true);
 
-    $mockHelperAPI = $this->getMockBuilder(\FreePBX\modules\Api::class)
-      ->disableOriginalConstructor()
-      ->setMethods(array('addTransaction'))
-      ->getMock();
-
-    $mockHelperAPI->method('addTransaction')
-    ->willReturn('1234');
-
     self::$freepbx->sysadmin()->setRunHook($mockHelper);
 
     $response = $this->request("query {
@@ -496,7 +488,7 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
 
     $txnId = json_decode($json)->data->restartAsterisk->transaction_id;
 
-    $this->assertEquals('{"data":{"restartAsterisk":{"status":true,"message":"Restart has been initiated. Please check the status using fetchApiStatus api with the returned transaction id","transaction_id":"' . $txnId . '"}}}', $json);
+    $this->assertNotEmpty($txnId);
 
     $this->assertEquals(200, $response->getStatusCode());
   }

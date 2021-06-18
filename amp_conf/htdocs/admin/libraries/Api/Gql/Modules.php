@@ -268,7 +268,7 @@ class Modules extends Base {
 							$txnId = $this->freepbx->api->addTransaction("Processing", "framework", "fwconsole-commands");
 							\FreePBX::Sysadmin()->ApiHooks()->runModuleSystemHook('api', 'fwconsole-commands', array('restart', $txnId));
 							$msg = _('Restart has been initiated. Please check the status using fetchApiStatus api with the returned transaction id');
-							return ['message' => $msg, 'status' => True, 'transaction_id' => $txnId];
+							return ['message' => $msg, 'status' => true, 'transaction_id' => $txnId];
 						}
 					]
 				];
