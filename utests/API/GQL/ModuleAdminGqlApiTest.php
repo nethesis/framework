@@ -460,4 +460,44 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
     $this->assertEquals('{"errors":[{"message":"Failed to run yum Upgrade","status":false}]}',$json);
     $this->assertEquals(400, $response->getStatusCode());
   }
+
+  /**
+   * test_restartApi_should_return_transaction_id_when_executed_correctly
+   *
+   * @return void
+   */
+  public function test_restartApi_should_return_transaction_id_when_executed_correctly()
+  {
+    $mockHelper = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\BMO\Hooks::class)
+      ->disableOriginalConstructor()
+      ->setMethods(array('runModuleSystemHook'))
+      ->getMock();
+
+    $mockHelper->method('runModuleSystemHook')
+    ->willReturn(true);
+
+    $mockHelperAPI = $this->getMockBuilder(\FreePBX\modules\Api::class)
+      ->disableOriginalConstructor()
+      ->setMethods(array('addTransaction'))
+      ->getMock();
+
+    $mockHelperAPI->method('addTransaction')
+    ->willReturn('1234');
+
+    self::$freepbx->sysadmin()->setRunHook($mockHelper);
+
+    $response = $this->request("query {
+        restartApi {
+            status message transaction_id
+        }
+    }");
+
+    $json = (string)$response->getBody();
+
+    $txnId = json_decode($json)->data->restartApi->transaction_id;
+
+    $this->assertEquals('{"data":{"restartApi":{"status":true,"message":"Restart has been initiated. Please check the status using fetchApiStatus api with the returned transaction id","transaction_id":"' . $txnId . '"}}}', $json);
+
+    $this->assertEquals(200, $response->getStatusCode());
+  }
 }
