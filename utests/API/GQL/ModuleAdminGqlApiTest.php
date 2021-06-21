@@ -462,11 +462,11 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
   }
 
   /**
-   * test_restartAsterisk_should_return_transaction_id_when_executed_correctly
+   * test_fwconsoleCommand_should_return_transaction_id_when_executed_correctly
    *
    * @return void
    */
-  public function test_restartAsterisk_should_return_transaction_id_when_executed_correctly()
+  public function test_fwconsoleCommand_should_return_transaction_id_when_executed_correctly()
   {
     $mockHelper = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\BMO\Hooks::class)
       ->disableOriginalConstructor()
@@ -478,18 +478,56 @@ class ModuleAdminGqlApiTest extends ApiBaseTestCase {
 
     self::$freepbx->sysadmin()->setRunHook($mockHelper);
 
-    $response = $this->request("query {
-        restartAsterisk {
-            status message transaction_id
-        }
-    }");
+    $response = $this->request(
+      "mutation {
+          fwconsoleCommand(input: {
+                command: reload
+            }) {
+              status message transaction_id
+          }
+      }"
+    );
 
     $json = (string)$response->getBody();
 
-    $txnId = json_decode($json)->data->restartAsterisk->transaction_id;
+    $txnId = json_decode($json)->data->fwconsoleCommand->transaction_id;
 
     $this->assertNotEmpty($txnId);
 
     $this->assertEquals(200, $response->getStatusCode());
+  }
+
+  /**
+   * test_fwconsoleCommand_should_return_error_when_invalid_argument_is_passed
+   *
+   * @return void
+   */
+  public function test_fwconsoleCommand_should_return_error_when_invalid_argument_is_passed()
+  {
+    $mockHelper = $this->getMockBuilder(Freepbx\framework\amp_conf\htdocs\admin\libraries\BMO\Hooks::class)
+      ->disableOriginalConstructor()
+      ->setMethods(array('runModuleSystemHook'))
+      ->getMock();
+
+    $mockHelper->method('runModuleSystemHook')
+    ->willReturn(true);
+
+    self::$freepbx->sysadmin()->setRunHook($mockHelper);
+
+    $response = $this->request(
+      "mutation {
+          fwconsoleCommand(input: {
+                command: lorem
+            }) {
+              status message transaction_id
+          }
+      }"
+    );
+
+    $json = (string)$response->getBody();
+
+    $this->assertEquals('{"errors":[{"message":"Expected type command, found lorem.","status":false}]}', $json);
+
+    $this->assertEquals(400, $response->getStatusCode());
   }
 }

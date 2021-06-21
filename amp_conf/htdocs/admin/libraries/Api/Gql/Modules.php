@@ -111,10 +111,48 @@ class Modules extends Base {
 					'mutateAndGetPayload' => function ($input) {
 						return $this->applyConfiguration();
 					}
+					]),
+					'fwconsoleCommand' => Relay::mutationWithClientMutationId([
+						'name' => 'fwconsoleCommand',
+						'description' => _('Executes fwconsole commands'),
+						'inputFields' => $this->getFwconsoleCommands(),
+						'outputFields' => $this->getOutputFields(),
+						'mutateAndGetPayload' => function ($input) {
+							$txnId = $this->freepbx->api->addTransaction("Processing", "framework", "fwconsole-commands");
+							\FreePBX::Sysadmin()->ApiHooks()->runModuleSystemHook('api', 'fwconsole-commands', array($input['command'], $txnId));
+							$msg = _('Command has been initiated. Please check the status using fetchApiStatus api with the returned transaction id');
+							return ['message' => $msg, 'status' => true, 'transaction_id' => $txnId];
+						}
 				])
 			  ];
 			};
 		}
+	}
+
+	private function getFwconsoleCommands()
+	{
+		return [
+			'command' => [
+				'type' => new EnumType([
+					'name' => 'command',
+					'values' => [
+						'r' => [
+							'value' => 'r',
+						],
+						'restart' => [
+							'value' => 'restart',
+						],
+						'reload' => [
+							'value' => 'reload',
+						],
+						'chown' => [
+							'value' => 'chown',
+						]
+					]
+				]),
+				'description' => _('fwconsole command'),
+			]
+		];
 	}
 	
 	private function getMutationFieldModule() {
@@ -129,6 +167,7 @@ class Modules extends Base {
 			]
 		];
 	}
+	
 
 	private function getInstallMutationField() {
 		return [
@@ -259,16 +298,6 @@ class Modules extends Base {
 							}else{
 								return ['message' => _('Doreload is not required'), 'status' => true] ;
 							}
-						}
-					],
-					'restartAsterisk' => [
-						'type' => $this->typeContainer->get('module')->getObject(),
-						'description' => _('Executes fwconsole restart command'),
-						'resolve' => function ($root, $args) {
-							$txnId = $this->freepbx->api->addTransaction("Processing", "framework", "fwconsole-commands");
-							\FreePBX::Sysadmin()->ApiHooks()->runModuleSystemHook('api', 'fwconsole-commands', array('restart', $txnId));
-							$msg = _('Restart has been initiated. Please check the status using fetchApiStatus api with the returned transaction id');
-							return ['message' => $msg, 'status' => true, 'transaction_id' => $txnId];
 						}
 					]
 				];
