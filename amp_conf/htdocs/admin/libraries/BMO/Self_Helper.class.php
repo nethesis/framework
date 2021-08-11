@@ -206,6 +206,7 @@ class Self_Helper extends DB_Helper {
 
 		// Right, after all of this we should now have our object ready to create.
 		if (!class_exists($objname,false) && !class_exists($this->moduleNamespace.$objname,false) && !class_exists($this->freepbxNamespace.$objname,false)) {
+		
 			// Bad things have happened.
 			if (!$loaded) {
 				$sobjname = strtolower($objname);
