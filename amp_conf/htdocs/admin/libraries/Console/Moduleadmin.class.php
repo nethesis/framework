@@ -1180,7 +1180,7 @@ class Moduleadmin extends Command {
 			}
 		}
 		ksort($modules);
-		$this->mf->getAllSignatures(!$online, $online);
+		$getAllSignatures = $this->mf->getAllSignatures(!$online, $online);
 		$rows = array();
 		foreach (array_keys($modules) as $name) {
 			$status_index = isset($modules[$name]['status'])?$modules[$name]['status']:'';
@@ -1232,14 +1232,29 @@ class Moduleadmin extends Command {
 			}
 			$module_version = isset($modules[$name]['dbversion'])?$modules[$name]['dbversion']:'';
 			$module_license = isset($modules[$name]['license'])?$modules[$name]['license']:'';
-			array_push($rows,array($name, $module_version, $status, $module_license));
+			if (isset($getAllSignatures['modules'][$name]['signature'])) {
+				switch ($getAllSignatures['modules'][$name]['signature']['status']) {
+					case 129 :
+						$module_Signature = 'Sangoma';
+						break;
+					case 8:
+						$module_Signature = 'Unsigned';
+						break;
+					default:
+						$module_Signature = '';
+						break;
+				}
+			} else {
+				$module_Signature = 'Unknown';
+			}
+			array_push($rows,array($name, $module_version, $status, $module_license, $module_Signature));
 		}
 		if($this->format == 'json') {
 			$this->writeln($rows);
 		} else {
 			$table = new Table($this->out);
 			$table
-				->setHeaders(array(_('Module'), _('Version'), _('Status'),_('License')))
+				->setHeaders(array(_('Module'), _('Version'), _('Status'),_('License'), _('Signature')))
 				->setRows($rows);
 			$table->render();
 		}
