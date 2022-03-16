@@ -1173,6 +1173,8 @@ class Moduleadmin extends Command {
 		$modules_local = $this->mf->getinfo(false,false,true);
 		$modules = $modules_local;
 		$this->check_active_repos();
+		$showSignCol = ($this->FreePBX->Config->get('SIGNATURECHECK')) ? _('Signature') : null;
+		$module_Signature = null;
 		if ($online) {
 			$modules_online = $this->mf->getonlinexml();
 			if (isset($modules_online)) {
@@ -1180,7 +1182,7 @@ class Moduleadmin extends Command {
 			}
 		}
 		ksort($modules);
-		$this->mf->getAllSignatures(!$online, $online);
+		$getAllSignatures = $this->mf->getAllSignatures(!$online, $online);
 		$rows = array();
 		foreach (array_keys($modules) as $name) {
 			$status_index = isset($modules[$name]['status'])?$modules[$name]['status']:'';
@@ -1232,14 +1234,41 @@ class Moduleadmin extends Command {
 			}
 			$module_version = isset($modules[$name]['dbversion'])?$modules[$name]['dbversion']:'';
 			$module_license = isset($modules[$name]['license'])?$modules[$name]['license']:'';
-			array_push($rows,array($name, $module_version, $status, $module_license));
+			if (!empty($showSignCol)) {
+				if (isset($getAllSignatures['modules'][$name]['signature']) && is_int($getAllSignatures['modules'][$name]['signature']['status'])) {
+					switch (true) {
+						case $getAllSignatures['modules'][$name]['signature']['status'] & \FreePBX\GPG::STATE_GOOD:
+							$module_Signature = 'Sangoma';
+							break;
+						case $getAllSignatures['modules'][$name]['signature']['status'] & \FreePBX\GPG::STATE_UNSIGNED:
+							$module_Signature = 'Unsigned';
+							break;
+						case $getAllSignatures['modules'][$name]['signature']['status'] & \FreePBX\GPG::STATE_INVALID:
+							$module_Signature = 'Signed with an invalid key';
+							break;
+						case $getAllSignatures['modules'][$name]['signature']['status'] & \FreePBX\GPG::STATE_TAMPERED:
+							$module_Signature = 'Module has been tampered. Please redownload';
+							break;
+						case $getAllSignatures['modules'][$name]['signature']['status'] & \FreePBX\GPG::STATE_REVOKED:
+							$module_Signature = 'Module has been revoked and can not be enabled';
+							break;
+						default:
+							break;
+					}
+				} else {
+					$module_Signature = 'Unknown';
+				}
+				array_push($rows,array($name, $module_version, $status, $module_license, $module_Signature));
+			} else {
+				array_push($rows,array($name, $module_version, $status, $module_license));
+			}
 		}
 		if($this->format == 'json') {
 			$this->writeln($rows);
 		} else {
 			$table = new Table($this->out);
 			$table
-				->setHeaders(array(_('Module'), _('Version'), _('Status'),_('License')))
+				->setHeaders(array(_('Module'), _('Version'), _('Status'),_('License'), $showSignCol))
 				->setRows($rows);
 			$table->render();
 		}
